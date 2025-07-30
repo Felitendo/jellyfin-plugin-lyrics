@@ -1,12 +1,12 @@
 # Jellyfin Lyrics Plugin
 
-A plugin for Jellyfin that automatically downloads and applies the lyrics for the songs in your music library from [LrcLib](https://lrclib.net).
+A plugin for Jellyfin that automatically downloads and applies the lyrics for the songs in your music library from [lrclib.net](https://lrclib.net).
 
 ## 🎵 Features
 
 - Automatic lyrics download for your entire music library
 - Integrates seamlessly with Jellyfin's music player
-- Downloads Lyrics directly from LrcLib
+- Downloads Lyrics directly from lrclib.net
 - Real-time lyrics display during playback
 
 ## 🚀 Installation
@@ -17,7 +17,7 @@ A plugin for Jellyfin that automatically downloads and applies the lyrics for th
    ```text
    https://raw.githubusercontent.com/Felitendo/jellyfin-plugin-lyrics/master/manifest.json
 3. Navigate to the Plugin Catalog in your Jellyfin dashboard
-4. Find "LrcLib" under the "Notifications" category and install it
+4. Find "Lyrics" under the "Notifications" category and install it
 5. Go to Scheduled Tasks and run "Download missing lyrics"
 6. Scan all libraries to complete the integration
 
