@@ -1,49 +1,64 @@
-# Jellyfin Lyrics Plugin
+# 🎶 Jellyfin Lyrics Plugin
 
-A plugin for Jellyfin that automatically downloads and applies the lyrics for the songs in your music library from [lrclib.net](https://lrclib.net).
+A plugin for **Jellyfin** that automatically downloads and displays lyrics for songs in your music library using [lrclib.net](https://lrclib.net).
 
-## 🎵 Features
+---
 
-- Automatic lyrics download for your entire music library
-- Integrates seamlessly with Jellyfin's music player
-- Downloads Lyrics directly from lrclib.net
-- Real-time lyrics display during playback
+## ✨ Features
+
+- 🔄 Automatically downloads lyrics for your entire library  
+- 🎼 Seamlessly integrates with Jellyfin’s music player  
+- 🌐 Fetches lyrics directly from [lrclib.net](https://lrclib.net)  
+- 🕒 Real-time lyrics display during playback  
+
+---
 
 ## 🚀 Installation
 
-1. Ensure your Jellyfin server is updated to version 10.9.11 or above
-2. Add the plugin repository to Jellyfin:
+1. Make sure your Jellyfin server is updated to **version 10.9.11 or higher**
+2. Add the plugin repository URL to Jellyfin:
 
-   ```text
-   https://raw.githubusercontent.com/Felitendo/jellyfin-plugin-lyrics/master/manifest.json
-3. Navigate to the Plugin Catalog in your Jellyfin dashboard
-4. Find "Lyrics" under the "Notifications" category and install it
-5. Go to Scheduled Tasks and run "Download missing lyrics"
-6. Scan all libraries to complete the integration
+       https://raw.githubusercontent.com/Felitendo/jellyfin-plugin-lyrics/master/manifest.json
 
-## 📝 Manual Refresh
+3. Open the **Plugin Catalog** in your Jellyfin dashboard  
+4. Look for **"Lyrics"** under the **Notifications** category and install it  
+5. Go to **Scheduled Tasks** and run **"Download missing lyrics"**  
+6. **Scan all libraries** to complete integration  
+
+---
+
+## 🔄 Manual Refresh
 
 If lyrics aren't appearing for specific albums:
-1. Navigate to the album
-2. Right-click
-3. Select "Refresh metadata"
 
-## 🔍 Troubleshooting
+1. Navigate to the album  
+2. Right-click the album  
+3. Select **"Refresh metadata"**
+
+---
+
+## 🛠️ Troubleshooting
 
 - **Plugin not appearing?**  
-  → Ensure your Jellyfin version is **10.9.11 or higher**.
+  → Ensure your Jellyfin version is **10.9.11 or higher**
 
-- **Lyrics not showing up?**  
-  → Confirm all **installation steps are complete**, and try **refreshing metadata**.
+- **Lyrics not showing?**  
+  → Double-check all **installation steps**  
+  → Try **refreshing metadata**
 
-- **Missing lyrics for specific songs?**  
-  → Try **manually refreshing metadata** for those items and/or **toggle** the  
-  `"Use strict search."` option in the plugin settings.
+- **Missing lyrics for specific tracks?**  
+  → Manually refresh metadata  
+  → Toggle the `"Use strict search."` option in plugin settings  
 
-## 💡 Contributing
+---
 
-Contributions are welcome! Please feel free to submit a Pull Request. For major changes, please open an issue first to discuss what you would like to change.
+## 🤝 Contributing
 
-## 📞 Support
+Contributions are welcome!  
+Feel free to open a **Pull Request**, or start a discussion via an **Issue** if proposing a major change.
 
-- Create an [Issue](https://github.com/Felitendo/jellyfin-lyrics-plugin/issues)
+---
+
+## 📬 Support
+
+👉 [Create an Issue](https://github.com/Felitendo/jellyfin-lyrics-plugin/issues)
