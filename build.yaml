@@ -10,5 +10,5 @@ description: >
 
 category: "Notifications"
 artifacts:
-  - "Jellyfin.Plugin.LrcLib.dll"
+  - "Jellyfin.Plugin.Lyrics.dll"
 changelog: |-
