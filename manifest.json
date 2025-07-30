@@ -11,7 +11,7 @@
                 "version": "1.0.0.0",
                 "changelog": "",
                 "targetAbi": "10.9.0.0",
-                "sourceUrl": "https://github.com/Felitendo/jellyfin-plugin-lyrics/releases/download/v1/lrclib_1.0.0.0.zip",
+                "sourceUrl": "https://github.com/Felitendo/jellyfin-plugin-lyrics/releases/download/v1/lyrics_1.0.0.0.zip",
                 "checksum": "2a748a2e42be073971c1c0a85be71562",
                 "timestamp": "2024-08-29T22:19:03Z"
             }

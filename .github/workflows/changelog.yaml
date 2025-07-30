@@ -15,6 +15,6 @@ jobs:
   call:
     uses: jellyfin/jellyfin-meta-plugins/.github/workflows/changelog.yaml@master
     with:
-      repository-name: crobibero/jellyfin-plugin-lrclib
+      repository-name: Felitendo/jellyfin-plugin-lyrics
     secrets:
       token: ${{ secrets.GITHUB_TOKEN }}
