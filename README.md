@@ -27,16 +27,6 @@ A plugin for **Jellyfin** that automatically downloads and displays lyrics for s
 
 ---
 
-## 🔄 Manual Refresh
-
-If lyrics aren't appearing for specific albums:
-
-1. Navigate to the album  
-2. Right-click the album  
-3. Select **"Refresh metadata"**
-
----
-
 ## 🛠️ Troubleshooting
 
 - **Plugin not appearing?**  
@@ -48,7 +38,17 @@ If lyrics aren't appearing for specific albums:
 
 - **Missing lyrics for specific tracks?**  
   → Manually refresh metadata  
-  → Toggle the `"Use strict search."` option in plugin settings  
+  → Toggle the `"Use strict search."` option in plugin settings
+
+---
+
+## 🔄 Manual Refresh
+
+If lyrics aren't appearing for specific albums:
+
+1. Navigate to the album  
+2. Right-click the album  
+3. Select **"Refresh metadata"**
 
 ---
 
