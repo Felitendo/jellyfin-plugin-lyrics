@@ -9,11 +9,11 @@
         "versions": [
             {
                 "version": "1.1.0.0",
-                "changelog": "## v1.1.0.0\n\n### What's New\n- 🎵 Renamed plugin from \"LrcLib\" to \"Lyrics\" for better user experience\n- 🔧 Fixed build compatibility issues with .NET 8.0 and Jellyfin 10.9.x\n- 📦 Improved build artifacts and CI/CD pipeline\n- 📂 Fixed plugin categorization from \"Notifications\" to \"Metadata\"\n\n### Technical Improvements\n- Consistent versioning across all project files\n- Better package compatibility with Jellyfin 10.9.x series\n- Improved documentation and installation instructions",
+                "changelog": "## v1.1.0.0\n\n### What's New\n- \ud83c\udfb5 Renamed plugin from \"LrcLib\" to \"Lyrics\" for better user experience\n- \ud83d\udd27 Fixed build compatibility issues with .NET 8.0 and Jellyfin 10.9.x\n- \ud83d\udce6 Improved build artifacts and CI/CD pipeline\n- \ud83d\udcc2 Fixed plugin categorization from \"Notifications\" to \"Metadata\"\n\n### Technical Improvements\n- Consistent versioning across all project files\n- Better package compatibility with Jellyfin 10.9.x series\n- Improved documentation and installation instructions",
                 "targetAbi": "10.9.0.0",
                 "sourceUrl": "https://github.com/Felitendo/jellyfin-plugin-lyrics/releases/download/v1.1/lyrics_1.1.0.0.zip",
-                "checksum": "",
-                "timestamp": ""
+                "checksum": "cf2e161121bc73ef850c5c852602c7fd",
+                "timestamp": "2025-07-30T17:40:16Z"
             },
             {
                 "version": "1.0.0.0",
