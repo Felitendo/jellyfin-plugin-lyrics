@@ -47,5 +47,3 @@ Contributions are welcome! Please feel free to submit a Pull Request. For major 
 ## 📞 Support
 
 - Create an [Issue](https://github.com/Felitendo/jellyfin-lyrics-plugin/issues)
-- Write an [E-Mail](mailto:support@felo.gg)
-- Join my [Discord Server](https://felo.gg/felocord)
