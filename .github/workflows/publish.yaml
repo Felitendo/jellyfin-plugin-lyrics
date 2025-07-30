@@ -48,10 +48,12 @@ jobs:
           asset_path: ${{ steps.jprm.outputs.artifact }}
 
       - name: Update manifest
+        if: ${{ github.event_name == 'release' }}
         run: |
           jprm repo add --plugin-url ${{ steps.release.outputs.browser_download_url }} . ${{ steps.jprm.outputs.artifact }}
 
       - name: Commit manifest
+        if: ${{ github.event_name == 'release' }}
         run: |
           git config user.name jellyfin-bot
           git config user.email team@jellyfin.org
