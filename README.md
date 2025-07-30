@@ -38,7 +38,7 @@ If lyrics aren't appearing for specific albums:
 
 - **Missing lyrics for specific songs?**  
   → Try **manually refreshing metadata** for those items and/or **toggle** the  
-  `"Use strict search"` option in the plugin settings.
+  `Use strict search.` option in the plugin settings.
 
 ## 💡 Contributing
 
