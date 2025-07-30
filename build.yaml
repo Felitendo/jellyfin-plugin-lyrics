@@ -1,6 +1,6 @@
 name: "Lyrics"
 guid: "D106EBE6-9CA8-4FBC-9CD1-A92A213DA9F9"
-version: "1"
+version: "1.1"
 targetAbi: "10.9.0.0"
 framework: "net8.0"
 owner: "Felitendo"
@@ -8,7 +8,19 @@ overview: "Download lyrics from https://lrclib.net/"
 description: >
   Download lyrics from https://lrclib.net/
 
-category: "Notifications"
+category: "Metadata"
 artifacts:
   - "Jellyfin.Plugin.Lyrics.dll"
 changelog: |-
+  ## v1.1.0.0
+  
+  ### What's New
+  - 🎵 Renamed plugin from "LrcLib" to "Lyrics" for better user experience
+  - 🔧 Fixed build compatibility issues with .NET 8.0 and Jellyfin 10.9.x
+  - 📦 Improved build artifacts and CI/CD pipeline
+  - 📂 Fixed plugin categorization from "Notifications" to "Metadata"
+  
+  ### Technical Improvements
+  - Consistent versioning across all project files
+  - Better package compatibility with Jellyfin 10.9.x series
+  - Improved documentation and installation instructions
