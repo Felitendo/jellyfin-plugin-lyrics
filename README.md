@@ -37,7 +37,7 @@ A plugin for **Jellyfin** that automatically downloads and displays lyrics for s
   → Try **refreshing metadata**
 
 - **Missing lyrics for specific tracks?**  
-  → Manually refresh metadata  
+  → Manually refresh metadata (see below)
   → Toggle the `"Use strict search."` option in plugin settings
 
 ---
