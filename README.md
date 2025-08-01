@@ -61,4 +61,4 @@ Feel free to open a **Pull Request**, or start a discussion via an **Issue** if 
 
 ## 📬 Support
 
-👉 [Create an Issue](https://github.com/Felitendo/jellyfin-lyrics-plugin/issues)
+👉 [Create an Issue](https://github.com/Felitendo/jellyfin-plugin-lyrics/issues)
