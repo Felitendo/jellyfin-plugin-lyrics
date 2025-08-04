@@ -55,7 +55,7 @@ If lyrics aren't appearing for specific albums:
 ## 🤝 Contributing
 
 Contributions are welcome!  
-Feel free to open a **Pull Request**, or start a discussion via an **Issue** if proposing a major change.
+Feel free to open a **Pull Request**, or suggest new features / report bugs via an **Issue**.
 
 ---
 
