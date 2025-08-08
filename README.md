@@ -21,19 +21,22 @@ A plugin for **Jellyfin** that automatically downloads and displays lyrics for s
        https://raw.githubusercontent.com/Felitendo/jellyfin-plugin-lyrics/master/manifest.json
 
 3. Open the **Plugin Catalog** in your Jellyfin dashboard  
-4. Look for **"Lyrics"** under the **Notifications** category and install it  
-5. Go to **Scheduled Tasks** and run **"Download missing lyrics"**  
-6. **Scan all libraries** to complete integration  
+4. Look for **"Lyrics"** under the **Notifications** category and install it
+5. Restart Jellyfin
+6. Search for the Plugin "LrcLib" (should be pre-installed) and uninstall it
+7. Restart Jellyfin again  
+8. Go to **Scheduled Tasks** and run **"Download missing lyrics"**  
+9. Go to **Libraries** and click on **Scan all Libraries**
 
 ---
 
 ## 🛠️ Troubleshooting
 
 - **Plugin not appearing?**  
-  → Ensure your Jellyfin version is **10.9.11 or higher**
+  → Double check if your Jellyfin version is **10.9.11 or higher**
 
 - **Lyrics not showing?**  
-  → Double-check all **installation steps**  
+  → Try to search for songs manually (right click on a song -> edit song text -> click on the search icon)
   → Try **refreshing metadata**
 
 - **Missing lyrics for specific tracks?**  
