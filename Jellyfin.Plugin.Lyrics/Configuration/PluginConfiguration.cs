@@ -10,7 +10,7 @@ namespace Jellyfin.Plugin.Lyrics.Configuration
         /// <summary>
         /// Gets or sets a value indicating whether to use strict search.
         /// </summary>
-        public bool UseStrictSearch { get; set; } = true;
+        public bool UseStrictSearch { get; set; } = false;
 
         /// <summary>
         /// Gets or sets a value indicating whether to exclude artist name.
@@ -20,6 +20,6 @@ namespace Jellyfin.Plugin.Lyrics.Configuration
         /// <summary>
         /// Gets or sets a value indicating whether to exclude album name.
         /// </summary>
-        public bool ExcludeAlbumName { get; set; } = false;
+        public bool ExcludeAlbumName { get; set; } = true;
     }
 }
