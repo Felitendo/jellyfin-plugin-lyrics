@@ -53,13 +53,13 @@ public class LyricDownloadTask : IScheduledTask
     }
 
     /// <inheritdoc />
-    public string Name => "Download missing lyrics";
+    public string Name => "Download missing lyrics (new)";
 
     /// <inheritdoc />
-    public string Key => "DownloadLyrics";
+    public string Key => "DLLyrics";
 
     /// <inheritdoc />
-    public string Description => "Task to download missing lyrics";
+    public string Description => "Task to download missing lyrics from lrclib.net";
 
     /// <inheritdoc />
     public string Category => _localizationManager.GetLocalizedString("TasksLibraryCategory");

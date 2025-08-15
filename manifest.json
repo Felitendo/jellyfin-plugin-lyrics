@@ -1,9 +1,9 @@
 [
     {
-        "guid": "d106ebe6-9ca8-4fbc-9cd1-a92a213da9f9",
+        "guid": "f4a1b2c3-d4e5-6f7a-8b9c-0d1e2f3a4b5c",
         "name": "Lyrics",
-        "description": "Download lyrics from https://lrclib.net/\n",
-        "overview": "Download lyrics from https://lrclib.net/",
+        "description": "Lyrics plugin that downloads lyrics from lrclib.net with configurable search options\n",
+        "overview": "Lyrics plugin with configurable search options and automatic library scanning",
         "owner": "Felitendo",
         "category": "Metadata",
         "versions": [
