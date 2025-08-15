@@ -1,17 +1,30 @@
 name: "Lyrics"
-guid: "D106EBE6-9CA8-4FBC-9CD1-A92A213DA9F9"
-version: "1.1"
+guid: "F4A1B2C3-D4E5-6F7A-8B9C-0D1E2F3A4B5C"
+version: "1.2"
 targetAbi: "10.9.0.0"
 framework: "net8.0"
 owner: "Felitendo"
-overview: "Download lyrics from https://lrclib.net/"
+overview: "Lyrics plugin with configurable search options and automatic library scanning"
 description: >
-  Download lyrics from https://lrclib.net/
+  Lyrics plugin that downloads lyrics from lrclib.net with configurable search options
 
 category: "Metadata"
 artifacts:
   - "Jellyfin.Plugin.Lyrics.dll"
 changelog: |-
+  ## v1.2.0.0
+  
+  ### What's New
+  - 🔧 Fixed plugin conflicts with Jellyfin's built-in LrcLib plugin
+  - 🌍 Unique plugin GUID to prevent uninstallation conflicts
+  - 🔗 Distinct task key to avoid scheduler conflicts
+  - 📈 Improved plugin independence and stability
+  
+  ### Technical Improvements
+  - Enhanced plugin isolation from Jellyfin core components
+  - Better version management and release process
+  - Updated documentation and installation instructions
+  
   ## v1.1.0.0
   
   ### What's New
