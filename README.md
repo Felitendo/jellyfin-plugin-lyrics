@@ -17,16 +17,15 @@ A plugin for **Jellyfin** that automatically downloads and displays lyrics for s
 
 1. Make sure your Jellyfin server is updated to **version 10.9.11 or higher**
 2. Add the plugin repository URL to Jellyfin:
-
+   
        https://raw.githubusercontent.com/Felitendo/jellyfin-plugin-lyrics/master/manifest.json
-
-3. Open the **Plugin Catalog** in your Jellyfin dashboard  
-4. Look for **"Lyrics"** under the **Metadata** category and install it
-5. Restart Jellyfin
-6. Search for the Plugin "LrcLib" (is sometimes pre-installed) and uninstall it (if it's not installed then skip this step)
-7. Restart Jellyfin again
-8. Go to **Scheduled Tasks** and run **"Download missing lyrics (new)"**
-9. Go to **Libraries** and click on **Scan all Libraries**
+4. Open the **Plugin Catalog** in your Jellyfin dashboard  
+5. Look for **"Lyrics"** under the **Metadata** category and install it
+6. Restart Jellyfin
+7. Search for the Plugin "LrcLib" (is sometimes pre-installed) and uninstall it (if it's not installed then skip this step)
+8. Restart Jellyfin again
+9. Go to **Scheduled Tasks** and run **"Download missing lyrics (new)"**
+10. Go to **Libraries** and click on **Scan all Libraries**
 
 ---
 
