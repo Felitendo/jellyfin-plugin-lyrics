@@ -1,5 +1,5 @@
 name: "Lyrics"
-guid: "F4A1B2C3-D4E5-6F7A-8B9C-0D1E2F3A4B5C"
+guid: "f4a1b2c3-d4e5-6f7a-8b9c-0d1e2f3a4b5c"
 version: "1.3"
 targetAbi: "10.9.0.0"
 framework: "net8.0"
@@ -16,27 +16,6 @@ changelog: |-
   ### What's New
   - Fixed a lot of plugin loading issues
   - Fixed GitHub Action Workflows
-  
-  ## v1.2.0.0
-  
-  ### What's New
-  - 🔧 Fixed plugin conflicts with Jellyfin's built-in LrcLib plugin
-  - 🌍 Unique plugin GUID to prevent uninstallation conflicts
-  - 🔗 Distinct task key to avoid scheduler conflicts
-  - 📈 Improved plugin independence and stability
-  
-  ### Technical Improvements
-  - Enhanced plugin isolation from Jellyfin core components
-  - Better version management and release process
-  - Updated documentation and installation instructions
-  
-  ## v1.1.0.0
-  
-  ### What's New
-  - 🎵 Renamed plugin from "LrcLib" to "Lyrics" for better user experience
-  - 🔧 Fixed build compatibility issues with .NET 8.0 and Jellyfin 10.9.x
-  - 📦 Improved build artifacts and CI/CD pipeline
-  - 📂 Fixed plugin categorization from "Notifications" to "Metadata"
   
   ### Technical Improvements
   - Consistent versioning across all project files
