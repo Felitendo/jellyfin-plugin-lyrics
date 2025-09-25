@@ -12,8 +12,8 @@
                 "changelog": "## v1.3.0.0\n### What's New\n- Fixed a lot of plugin loading issues\n- Fixed GitHub Action Workflows\n\n### Technical Improvements\n- Consistent versioning across all project files\n- Better package compatibility with Jellyfin 10.9.x series\n- Improved documentation and installation instructions",
                 "targetAbi": "10.9.0.0",
                 "sourceUrl": "https://github.com/Felitendo/jellyfin-plugin-lyrics/releases/download/v1.3/lyrics_1.3.0.0.zip",
-                "checksum": "0db8cd0c83279cf367ae0f253d7f3030",
-                "timestamp": "2025-09-25T08:45:40Z"
+                "checksum": "bdd8e8e3b22edfe017f621672cf4a07b",
+                "timestamp": "2025-09-25T08:54:04Z"
             }
         ]
     }
