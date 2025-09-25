@@ -1,6 +1,6 @@
 [
     {
-        "guid": "f4a1b2c3-d4e5-6f7a-8b9c-0d1e2f3a4b5c",
+        "guid": "08ee0307-56a2-46bd-8987-ed8da783f27c",
         "name": "Lyrics",
         "description": "Lyrics plugin that downloads lyrics from lrclib.net with configurable search options\n",
         "overview": "Lyrics plugin with configurable search options and automatic library scanning",
