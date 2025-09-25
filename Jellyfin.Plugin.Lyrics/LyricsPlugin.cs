@@ -28,7 +28,7 @@ public class LyricsPlugin : BasePlugin<PluginConfiguration>, IHasWebPages
     public override string Name => "Lyrics";
 
     /// <inheritdoc />
-    public override Guid Id => Guid.Parse("08ee0307-56a2-46bd-8987-ed8da783f27c");
+    public override Guid Id => Guid.Parse("f4a1b2c3-d4e5-6f7a-8b9c-0d1e2f3a4b5c");
 
     /// <summary>
     /// Gets the current plugin instance.
