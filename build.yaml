@@ -12,12 +12,6 @@ category: "Metadata"
 artifacts:
   - "Jellyfin.Plugin.Lyrics.dll"
 changelog: |-
-  ## v1.3.0.0
+  ## v1.4.0.0
   ### What's New
-  - Fixed a lot of plugin loading issues
-  - Fixed GitHub Action Workflows
-  
-  ### Technical Improvements
-  - Consistent versioning across all project files
-  - Better package compatibility with Jellyfin 10.9.x series
-  - Improved documentation and installation instructions
+  - Added support for Jellyfin 10.11
