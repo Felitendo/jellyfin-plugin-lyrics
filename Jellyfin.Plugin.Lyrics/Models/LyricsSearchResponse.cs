@@ -8,7 +8,7 @@ namespace Jellyfin.Plugin.Lyrics.Models;
 public class LyricsSearchResponse
 {
     /// <summary>
-    /// Gets or sets the lyrics id.
+    /// Gets or sets the lrclib id.
     /// </summary>
     [JsonPropertyName("id")]
     public long Id { get; set; }

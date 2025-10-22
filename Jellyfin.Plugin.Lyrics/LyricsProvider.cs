@@ -183,7 +183,9 @@ public class LyricsProvider : ILyricProvider
 
         var httpClient = _httpClientFactory.CreateClient(NamedClient.Default);
 
-        var response = await httpClient.GetFromJsonAsync<LyricsSearchResponse>(requestUri.Uri, cancellationToken: cancellationToken).ConfigureAwait(false);
+        var response = await httpClient
+            .GetFromJsonAsync<LyricsSearchResponse>(requestUri.Uri, cancellationToken: cancellationToken)
+            .ConfigureAwait(false);
         if (response is null)
         {
             return Enumerable.Empty<RemoteLyricInfo>();
@@ -246,7 +248,9 @@ public class LyricsProvider : ILyricProvider
 
         var httpClient = _httpClientFactory.CreateClient(NamedClient.Default);
 
-        var response = await httpClient.GetFromJsonAsync<IReadOnlyList<LyricsSearchResponse>>(requestUri.Uri, cancellationToken: cancellationToken).ConfigureAwait(false);
+        var response = await httpClient
+            .GetFromJsonAsync<IReadOnlyList<LyricsSearchResponse>>(requestUri.Uri, cancellationToken: cancellationToken)
+            .ConfigureAwait(false);
         if (response is null)
         {
             return Enumerable.Empty<RemoteLyricInfo>();

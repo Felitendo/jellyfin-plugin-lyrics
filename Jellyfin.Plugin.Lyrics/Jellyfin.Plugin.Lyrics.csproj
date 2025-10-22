@@ -15,9 +15,9 @@
 	</ItemGroup>
 	
     <ItemGroup>
-      <PackageReference Include="Jellyfin.Common" Version="10.9.*" />
-      <PackageReference Include="Jellyfin.Controller" Version="10.9.*" />
-      <PackageReference Include="Jellyfin.Model" Version="10.9.*" />
+      <PackageReference Include="Jellyfin.Common" Version="10.*-*" />
+      <PackageReference Include="Jellyfin.Controller" Version="10.*-*" />
+      <PackageReference Include="Jellyfin.Model" Version="10.*-*" />
       <PackageReference Include="Microsoft.Extensions.Http" Version="9.0.4" />
     </ItemGroup>
     
