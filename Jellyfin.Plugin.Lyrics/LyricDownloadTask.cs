@@ -97,7 +97,7 @@ public class LyricDownloadTask : IScheduledTask
                     // Check if lyrics already exist for this item
                     var existingLyrics = await _lyricManager.GetLyricsAsync(audioItem, cancellationToken).ConfigureAwait(false);
 
-                    if (existingLyrics is null || existingLyrics.Count == 0)
+                    if (existingLyrics is null)
                     {
                         _logger.LogDebug("Searching for lyrics for {Path}", audioItem.Path);
                         var lyricResults = await _lyricManager.SearchLyricsAsync(audioItem, true, cancellationToken).ConfigureAwait(false);
