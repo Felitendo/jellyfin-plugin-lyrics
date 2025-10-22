@@ -9,7 +9,6 @@ using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Entities.Audio;
 using MediaBrowser.Controller.Library;
 using MediaBrowser.Controller.Lyrics;
-using MediaBrowser.Controller.MediaEncoding;
 using MediaBrowser.Model.Entities;
 using MediaBrowser.Model.Globalization;
 using MediaBrowser.Model.Tasks;
@@ -33,7 +32,6 @@ public class LyricDownloadTask : IScheduledTask
     private readonly ILyricManager _lyricManager;
     private readonly ILogger<LyricDownloadTask> _logger;
     private readonly ILocalizationManager _localizationManager;
-    private readonly IMediaSourceManager _mediaSourceManager;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="LyricDownloadTask"/> class.
@@ -42,19 +40,16 @@ public class LyricDownloadTask : IScheduledTask
     /// <param name="lyricManager">Instance of the <see cref="ILyricManager"/> interface.</param>
     /// <param name="logger">Instance of the <see cref="ILogger{DownloaderScheduledTask}"/> interface.</param>
     /// <param name="localizationManager">Instance of the <see cref="ILocalizationManager"/> interface.</param>
-    /// <param name="mediaSourceManager">Instance of the <see cref="IMediaSourceManager"/> interface.</param>
     public LyricDownloadTask(
         ILibraryManager libraryManager,
         ILyricManager lyricManager,
         ILogger<LyricDownloadTask> logger,
-        ILocalizationManager localizationManager,
-        IMediaSourceManager mediaSourceManager)
+        ILocalizationManager localizationManager)
     {
         _libraryManager = libraryManager;
         _lyricManager = lyricManager;
         _logger = logger;
         _localizationManager = localizationManager;
-        _mediaSourceManager = mediaSourceManager;
     }
 
     /// <inheritdoc />
@@ -99,10 +94,10 @@ public class LyricDownloadTask : IScheduledTask
 
                 try
                 {
-                    var mediaSources = await _mediaSourceManager.GetPlaybackMediaSources(audioItem, null, false, false, cancellationToken).ConfigureAwait(false);
-                    var hasLyrics = mediaSources.Any(ms => ms.MediaStreams.Any(s => s.Type == MediaStreamType.Lyric));
+                    // Check if lyrics already exist for this item
+                    var existingLyrics = await _lyricManager.GetLyricsAsync(audioItem, cancellationToken).ConfigureAwait(false);
 
-                    if (!hasLyrics)
+                    if (existingLyrics is null || existingLyrics.Count == 0)
                     {
                         _logger.LogDebug("Searching for lyrics for {Path}", audioItem.Path);
                         var lyricResults = await _lyricManager.SearchLyricsAsync(audioItem, true, cancellationToken).ConfigureAwait(false);
