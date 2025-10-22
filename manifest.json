@@ -8,6 +8,14 @@
         "category": "Metadata",
         "versions": [
             {
+                "version": "1.5.0.0",
+                "changelog": "## v1.5.0.0\n### What's New\n- Fixed support for Jellyfin 10.11",
+                "targetAbi": "10.11.0.0",
+                "sourceUrl": "https://github.com/Felitendo/jellyfin-plugin-lyrics/releases/download/v1.5/lyrics_1.5.0.0.zip",
+                "checksum": "01a01fb05727c76d5bdf7cf14c6fe596",
+                "timestamp": "2025-10-22T07:42:02Z"
+            },
+            {
                 "version": "1.4.0.0",
                 "changelog": "## v1.4.0.0\n### What's New\n- Added support for Jellyfin 10.11",
                 "targetAbi": "10.11.0.0",
