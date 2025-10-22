@@ -94,7 +94,7 @@ public class LyricDownloadTask : IScheduledTask
 
                 try
                 {
-                    if (audioItem.GetMediaStreams().All(s => s.Type != MediaStreamType.Lyric))
+                    if (audioItem.MediaStreams.All(s => s.Type != MediaStreamType.Lyric))
                     {
                         _logger.LogDebug("Searching for lyrics for {Path}", audioItem.Path);
                         var lyricResults = await _lyricManager.SearchLyricsAsync(audioItem, true, cancellationToken).ConfigureAwait(false);
