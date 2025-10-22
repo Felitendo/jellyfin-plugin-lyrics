@@ -86,9 +86,9 @@ public class LyricDownloadTask : IScheduledTask
         while (startIndex < totalCount)
         {
             query.StartIndex = startIndex;
-            var audioItems = _libraryManager.GetItemList(query);
+            var queryResult = _libraryManager.GetItemsResult(query);
 
-            foreach (var audioItem in audioItems.OfType<Audio>())
+            foreach (var audioItem in queryResult.Items.OfType<Audio>())
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
