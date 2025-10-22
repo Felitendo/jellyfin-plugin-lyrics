@@ -130,7 +130,7 @@ public class LyricDownloadTask : IScheduledTask
         [
             new TaskTriggerInfo
             {
-                Type = TaskTriggerInfoType.IntervalTicks,
+                Type = TaskTriggerInfoType.IntervalTrigger,
                 IntervalTicks = TimeSpan.FromHours(24).Ticks
             }
         ];
