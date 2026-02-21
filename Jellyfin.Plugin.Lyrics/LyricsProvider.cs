@@ -68,10 +68,11 @@ public class LyricsProvider : ILyricProvider
         }
         catch (HttpRequestException ex)
         {
+            var artist = request.ArtistNames is { Count: > 0 } ? request.ArtistNames[0] : null;
             _logger.LogDebug(
                 ex,
                 "Unable to get results for {Artist} - {Album} - {Song}",
-                request.ArtistNames?[0],
+                artist,
                 request.AlbumName,
                 request.SongName);
             return Enumerable.Empty<RemoteLyricInfo>();
@@ -82,6 +83,13 @@ public class LyricsProvider : ILyricProvider
     public async Task<LyricResponse?> GetLyricsAsync(string id, CancellationToken cancellationToken)
     {
         var splitId = id.Split('_', 2);
+        if (splitId.Length != 2
+            || string.IsNullOrWhiteSpace(splitId[0])
+            || !IsSupportedLyricSuffix(splitId[1]))
+        {
+            _logger.LogDebug("Invalid lyric id format: {Id}", id);
+            throw new ResourceNotFoundException($"Unable to get results for id {id}");
+        }
 
         try
         {
@@ -95,7 +103,7 @@ public class LyricsProvider : ILyricProvider
                 .ConfigureAwait(false);
             if (response is null)
             {
-                throw new ResourceNotFoundException("Unable to get results for id {Id}");
+                throw new ResourceNotFoundException($"Unable to get results for id {id}");
             }
 
             if (string.Equals(splitId[1], SyncedSuffix, StringComparison.OrdinalIgnoreCase)
@@ -120,7 +128,7 @@ public class LyricsProvider : ILyricProvider
                 };
             }
 
-            throw new ResourceNotFoundException("Unable to get results for id {Id}");
+            throw new ResourceNotFoundException($"Unable to get results for id {id}");
         }
         catch (HttpRequestException ex)
         {
@@ -128,8 +136,14 @@ public class LyricsProvider : ILyricProvider
                 ex,
                 "Unable to get results for id {Id}",
                 id);
-            throw new ResourceNotFoundException("Unable to get results for id {Id}");
+            throw new ResourceNotFoundException($"Unable to get results for id {id}");
         }
+    }
+
+    private static bool IsSupportedLyricSuffix(string suffix)
+    {
+        return string.Equals(suffix, SyncedSuffix, StringComparison.OrdinalIgnoreCase)
+            || string.Equals(suffix, PlainSuffix, StringComparison.OrdinalIgnoreCase);
     }
 
     private async Task<IEnumerable<RemoteLyricInfo>> GetExactMatch(
