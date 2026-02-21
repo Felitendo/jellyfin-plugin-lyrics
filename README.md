@@ -12,6 +12,7 @@ Looking for **v10.10.7 support**? -> https://github.com/Felitendo/jellyfin-plugi
 - 🎼 Seamlessly integrates with Jellyfin’s music player  
 - 🌐 Fetches lyrics directly from [lrclib.net](https://lrclib.net)  
 - 🕒 Real-time lyrics display during playback  
+- ⚡ Smarter scheduled task that avoids retrying the same failed songs every day  
 
 ---
 
@@ -44,6 +45,30 @@ Looking for **v10.10.7 support**? -> https://github.com/Felitendo/jellyfin-plugi
 - **Missing lyrics for specific tracks?**  
   → Manually refresh metadata (see below)
   → Toggle the `"Use strict search."` option in plugin settings
+
+- **Scheduled task takes too long?**  
+  → Turn on `Skip repeated misses` (default on)
+  → Turn on `Limit work per run` and reduce `Max songs to check each run`
+  → Keep `Retry after days` on `1,3,7,30` unless you want faster/slower retries
+
+### How the speed settings work
+
+- **Skip repeated misses**  
+  When a song has no lyrics, the plugin does **not** retry it every day.  
+  With the default `1,3,7,30` schedule it tries:
+  - after 1 day
+  - then after 3 days
+  - then after 7 days
+  - then every 30 days  
+  This removes most repeated API calls for songs that likely have no lyrics online.
+
+- **Limit work per run**  
+  Caps how many songs are checked in one scheduled run.  
+  Example: with `Max songs = 1000`, the task stops after ~1000 songs and continues next day, instead of running for many hours.
+
+- **Good starting values**
+  - Small library: `Max songs = 2000` (default)
+  - Large library / slow server: `Max songs = 500-1000`
 
 ---
 

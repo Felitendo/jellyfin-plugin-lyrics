@@ -24,6 +24,36 @@
                             <input is="emby-checkbox" type="checkbox" id="excludeAlbumName" />
                             <span>Exclude album name from the search parameters.</span>
                         </label>
+                        <label class="checkboxContainer">
+                            <input is="emby-checkbox" type="checkbox" id="enableAdaptiveRetryBackoff" />
+                            <span>Skip repeated misses (recommended)</span>
+                        </label>
+                        <div id="adaptiveRetrySettings" style="margin-left: 2.2em;">
+                            <p style="margin: 0 0 1em 0; font-size: 0.95em; opacity: 0.8;">
+                                If a song has no lyrics today, the plugin waits longer before trying again.
+                            </p>
+                            <label>
+                                Retry after days (comma separated)
+                                <input is="emby-input" type="text" id="backoffScheduleDays" placeholder="1,3,7,30 (example)" />
+                            </label>
+                            <label>
+                                Forget old failed-song history after (days)
+                                <input is="emby-input" type="number" id="failureStateTtlDays" min="1" step="1" />
+                            </label>
+                        </div>
+                        <label class="checkboxContainer">
+                            <input is="emby-checkbox" type="checkbox" id="enableRunCap" />
+                            <span>Limit work per run (recommended for large libraries)</span>
+                        </label>
+                        <div id="runCapSettings" style="margin-left: 2.2em;">
+                            <p style="margin: 0 0 1em 0; font-size: 0.95em; opacity: 0.8;">
+                                Stops after this many songs per run, then continues next scheduled run.
+                            </p>
+                            <label>
+                                Max songs to check each run
+                                <input is="emby-input" type="number" id="maxTracksPerRun" min="100" step="1" />
+                            </label>
+                        </div>
                         <br />
                         <div>
                             <button is="emby-button" type="submit" data-theme="b" class="raised button-submit block">
@@ -51,6 +81,20 @@
 
                     document.querySelector('#excludeArtistName').checked = config.ExcludeArtistName;
                     document.querySelector('#excludeAlbumName').checked = config.ExcludeAlbumName;
+
+                    document.querySelector('#enableAdaptiveRetryBackoff').checked = config.EnableAdaptiveRetryBackoff !== false;
+                    document.querySelector('#enableRunCap').checked = config.EnableRunCap !== false;
+                    document.querySelector('#maxTracksPerRun').value = Math.max(config.MaxTracksPerRun || 2000, 100);
+                    document.querySelector('#failureStateTtlDays').value = Math.max(config.FailureStateTtlDays || 90, 1);
+
+                    var backoffDays = Array.isArray(config.BackoffScheduleDays) && config.BackoffScheduleDays.length > 0
+                        ? config.BackoffScheduleDays
+                        : [1, 3, 7, 30];
+                    document.querySelector('#backoffScheduleDays').value = backoffDays.join(',');
+
+                    LyricsPluginConfiguration.toggleStrictSearchVisibility();
+                    LyricsPluginConfiguration.toggleBackoffVisibility();
+                    LyricsPluginConfiguration.toggleRunCapVisibility();
                     Dashboard.hideLoadingMsg();
                 });
             },
@@ -62,12 +106,55 @@
                     config.UseStrictSearch = document.querySelector('#useStrictSearch').checked;
                     config.ExcludeArtistName = document.querySelector('#excludeArtistName').checked;
                     config.ExcludeAlbumName = document.querySelector('#excludeAlbumName').checked;
+                    config.EnableAdaptiveRetryBackoff = document.querySelector('#enableAdaptiveRetryBackoff').checked;
+                    config.EnableRunCap = document.querySelector('#enableRunCap').checked;
+
+                    var maxTracksPerRunValue = parseInt(document.querySelector('#maxTracksPerRun').value || '2000', 10);
+                    config.MaxTracksPerRun = Number.isFinite(maxTracksPerRunValue) ? Math.max(maxTracksPerRunValue, 100) : 2000;
+
+                    var failureStateTtlDaysValue = parseInt(document.querySelector('#failureStateTtlDays').value || '90', 10);
+                    config.FailureStateTtlDays = Number.isFinite(failureStateTtlDaysValue) ? Math.max(failureStateTtlDaysValue, 1) : 90;
+
+                    var parsedBackoffDays = (document.querySelector('#backoffScheduleDays').value || '')
+                        .split(',')
+                        .map(function (part) { return parseInt(part.trim(), 10); })
+                        .filter(function (value) { return Number.isFinite(value) && value > 0; });
+                    config.BackoffScheduleDays = parsedBackoffDays.length > 0 ? parsedBackoffDays : [1, 3, 7, 30];
 
                     ApiClient.updatePluginConfiguration(LyricsPluginConfiguration.uniquePluginId, config).then(function (result) {
                         Dashboard.processPluginConfigurationUpdateResult(result);
                     });
                 });
             },
+
+            toggleStrictSearchVisibility: function () {
+                if (document.getElementById('useStrictSearch').checked) {
+                    document.getElementById('excludeArtistNameLabel').classList.add('hide');
+                    document.getElementById('excludeAlbumNameLabel').classList.add('hide');
+                }
+                else {
+                    document.getElementById('excludeArtistNameLabel').classList.remove('hide');
+                    document.getElementById('excludeAlbumNameLabel').classList.remove('hide');
+                }
+            },
+
+            toggleBackoffVisibility: function () {
+                if (document.getElementById('enableAdaptiveRetryBackoff').checked) {
+                    document.getElementById('adaptiveRetrySettings').classList.remove('hide');
+                }
+                else {
+                    document.getElementById('adaptiveRetrySettings').classList.add('hide');
+                }
+            },
+
+            toggleRunCapVisibility: function () {
+                if (document.getElementById('enableRunCap').checked) {
+                    document.getElementById('runCapSettings').classList.remove('hide');
+                }
+                else {
+                    document.getElementById('runCapSettings').classList.add('hide');
+                }
+            }
         };
 
         document.getElementById('lyricsConfigurationPage').addEventListener('pageshow', function () {
@@ -80,15 +167,15 @@
         });
 
         document.getElementById('useStrictSearch').addEventListener('change', function () {
+            LyricsPluginConfiguration.toggleStrictSearchVisibility();
+        });
 
-            if (document.getElementById('useStrictSearch').checked) {
-                document.getElementById('excludeArtistNameLabel').classList.add('hide');
-                document.getElementById('excludeAlbumNameLabel').classList.add('hide');
-            }
-            else {
-                document.getElementById('excludeArtistNameLabel').classList.remove('hide');
-                document.getElementById('excludeAlbumNameLabel').classList.remove('hide');
-            }
+        document.getElementById('enableAdaptiveRetryBackoff').addEventListener('change', function () {
+            LyricsPluginConfiguration.toggleBackoffVisibility();
+        });
+
+        document.getElementById('enableRunCap').addEventListener('change', function () {
+            LyricsPluginConfiguration.toggleRunCapVisibility();
         });
         </script>
     </div>
