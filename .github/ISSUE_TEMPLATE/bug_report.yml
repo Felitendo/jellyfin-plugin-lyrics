@@ -37,3 +37,10 @@ body:
       placeholder: Jellyfin x.y.z, plugin x.y.z, OS ...
     validations:
       required: true
+  - type: checkboxes
+    id: duplicate-check
+    attributes:
+      label: Confirmation
+      options:
+        - label: I have checked that there is no duplicate issue.
+          required: true

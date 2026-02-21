@@ -13,11 +13,6 @@ body:
     validations:
       required: true
   - type: textarea
-    id: motivation
-    attributes:
-      label: Motivation (optional)
-      description: Why is this useful? This can be a problem, workflow improvement, or other context.
-  - type: textarea
     id: proposal
     attributes:
       label: Proposed solution
@@ -35,3 +30,10 @@ body:
     attributes:
       label: Additional context
       description: Add extra context, examples, or references here.
+  - type: checkboxes
+    id: duplicate-check
+    attributes:
+      label: Confirmation
+      options:
+        - label: I have checked that there is no duplicate issue.
+          required: true
