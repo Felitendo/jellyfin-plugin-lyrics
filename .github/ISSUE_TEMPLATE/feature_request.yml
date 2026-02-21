@@ -5,13 +5,18 @@ labels:
   - enhancement
 body:
   - type: textarea
-    id: problem
+    id: summary
     attributes:
-      label: Problem statement
-      description: What user problem are you trying to solve?
-      placeholder: A clear description of the problem.
+      label: Feature summary
+      description: What feature or improvement would you like to see?
+      placeholder: A clear description of the requested feature.
     validations:
       required: true
+  - type: textarea
+    id: motivation
+    attributes:
+      label: Motivation (optional)
+      description: Why is this useful? This can be a problem, workflow improvement, or other context.
   - type: textarea
     id: proposal
     attributes:
