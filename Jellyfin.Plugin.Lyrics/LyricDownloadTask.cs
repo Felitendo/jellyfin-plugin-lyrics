@@ -11,6 +11,7 @@ using MediaBrowser.Controller.Library;
 using MediaBrowser.Controller.Lyrics;
 using MediaBrowser.Model.Entities;
 using MediaBrowser.Model.Globalization;
+using MediaBrowser.Model.Lyrics;
 using MediaBrowser.Model.Tasks;
 using Microsoft.Extensions.Logging;
 
@@ -53,13 +54,13 @@ public class LyricDownloadTask : IScheduledTask
     }
 
     /// <inheritdoc />
-    public string Name => "Download missing lyrics (new)";
+    public string Name => "Download and upgrade lyrics (new)";
 
     /// <inheritdoc />
     public string Key => "DLLyrics";
 
     /// <inheritdoc />
-    public string Description => "Task to download missing lyrics from lrclib.net";
+    public string Description => "Task to download missing lyrics and upgrade plain lyrics to synced lyrics from lrclib.net";
 
     /// <inheritdoc />
     public string Category => _localizationManager.GetLocalizedString("TasksLibraryCategory");
@@ -82,6 +83,11 @@ public class LyricDownloadTask : IScheduledTask
 
         var startIndex = 0;
         var completed = 0;
+        var missingDownloadedCount = 0;
+        var upgradedToSyncedCount = 0;
+        var alreadySyncedSkippedCount = 0;
+        var plainNoSyncedFoundCount = 0;
+        var errorsCount = 0;
 
         while (startIndex < totalCount)
         {
@@ -94,7 +100,6 @@ public class LyricDownloadTask : IScheduledTask
 
                 try
                 {
-                    // Check if lyrics already exist for this item
                     var existingLyrics = await _lyricManager.GetLyricsAsync(audioItem, cancellationToken).ConfigureAwait(false);
 
                     if (existingLyrics is null)
@@ -105,12 +110,34 @@ public class LyricDownloadTask : IScheduledTask
                         {
                             _logger.LogDebug("Saving lyrics for {Path}", audioItem.Path);
                             await _lyricManager.DownloadLyricsAsync(audioItem, lyricResults[0].Id, cancellationToken).ConfigureAwait(false);
+                            missingDownloadedCount++;
+                        }
+                    }
+                    else if (HasSyncedLyrics(existingLyrics))
+                    {
+                        alreadySyncedSkippedCount++;
+                    }
+                    else
+                    {
+                        _logger.LogDebug("Checking upgrade to synced lyrics for {Path}", audioItem.Path);
+                        var lyricResults = await _lyricManager.SearchLyricsAsync(audioItem, true, cancellationToken).ConfigureAwait(false);
+                        var syncedCandidate = SelectBestSyncedCandidate(lyricResults);
+                        if (syncedCandidate is not null)
+                        {
+                            _logger.LogDebug("Upgrading to synced lyrics for {Path}", audioItem.Path);
+                            await _lyricManager.DownloadLyricsAsync(audioItem, syncedCandidate.Id, cancellationToken).ConfigureAwait(false);
+                            upgradedToSyncedCount++;
+                        }
+                        else
+                        {
+                            plainNoSyncedFoundCount++;
                         }
                     }
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Error downloading lyrics for {Path}", audioItem.Path);
+                    errorsCount++;
+                    _logger.LogError(ex, "Error processing lyrics for {Path}", audioItem.Path);
                 }
 
                 completed++;
@@ -119,6 +146,14 @@ public class LyricDownloadTask : IScheduledTask
 
             startIndex += QueryPageLimit;
         }
+
+        _logger.LogInformation(
+            "Lyrics task complete. Missing downloaded: {MissingDownloadedCount}, upgraded to synced: {UpgradedToSyncedCount}, already synced skipped: {AlreadySyncedSkippedCount}, plain with no synced found: {PlainNoSyncedFoundCount}, errors: {ErrorsCount}",
+            missingDownloadedCount,
+            upgradedToSyncedCount,
+            alreadySyncedSkippedCount,
+            plainNoSyncedFoundCount,
+            errorsCount);
 
         progress.Report(100);
     }
@@ -134,5 +169,15 @@ public class LyricDownloadTask : IScheduledTask
                 IntervalTicks = TimeSpan.FromHours(24).Ticks
             }
         ];
+    }
+
+    private static bool HasSyncedLyrics(LyricDto existingLyrics)
+    {
+        return existingLyrics.Metadata?.IsSynced == true;
+    }
+
+    private static RemoteLyricInfoDto? SelectBestSyncedCandidate(IReadOnlyList<RemoteLyricInfoDto> lyricResults)
+    {
+        return lyricResults.FirstOrDefault(static x => x.Lyrics?.Metadata?.IsSynced == true);
     }
 }

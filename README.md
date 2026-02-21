@@ -27,7 +27,7 @@ Looking for **v10.10.7 support**? -> https://github.com/Felitendo/jellyfin-plugi
 6. Restart Jellyfin
 7. Search for the Plugin "LrcLib" (is sometimes pre-installed) and uninstall it (if it's not installed then skip this step)
 8. Restart Jellyfin again
-9. Go to **Scheduled Tasks** and run **"Download missing lyrics (new)"**
+9. Go to **Scheduled Tasks** and run **"Download and upgrade lyrics (new)"**
 10. Go to **Libraries** and click on **Scan all Libraries**
 
 ---
