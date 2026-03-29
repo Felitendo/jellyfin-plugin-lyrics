@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using Jellyfin.Data.Enums;
 using Jellyfin.Plugin.Lyrics.Configuration;
 using Jellyfin.Plugin.Lyrics.Models;
+using MediaBrowser.Common.Configuration;
 using MediaBrowser.Controller.Dto;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Entities.Audio;
@@ -55,19 +56,21 @@ public class LyricDownloadTask : IScheduledTask
     /// </summary>
     /// <param name="libraryManager">Instance of the <see cref="ILibraryManager"/> interface.</param>
     /// <param name="lyricManager">Instance of the <see cref="ILyricManager"/> interface.</param>
-    /// <param name="retryStateStore">Instance of the <see cref="RetryStateStore"/>.</param>
+    /// <param name="applicationPaths">Instance of the <see cref="IApplicationPaths"/> interface.</param>
     /// <param name="logger">Instance of the <see cref="ILogger{DownloaderScheduledTask}"/> interface.</param>
+    /// <param name="loggerFactory">Instance of the <see cref="ILoggerFactory"/> interface.</param>
     /// <param name="localizationManager">Instance of the <see cref="ILocalizationManager"/> interface.</param>
     public LyricDownloadTask(
         ILibraryManager libraryManager,
         ILyricManager lyricManager,
-        RetryStateStore retryStateStore,
+        IApplicationPaths applicationPaths,
         ILogger<LyricDownloadTask> logger,
+        ILoggerFactory loggerFactory,
         ILocalizationManager localizationManager)
     {
         _libraryManager = libraryManager;
         _lyricManager = lyricManager;
-        _retryStateStore = retryStateStore;
+        _retryStateStore = new RetryStateStore(applicationPaths, loggerFactory.CreateLogger<RetryStateStore>());
         _logger = logger;
         _localizationManager = localizationManager;
     }

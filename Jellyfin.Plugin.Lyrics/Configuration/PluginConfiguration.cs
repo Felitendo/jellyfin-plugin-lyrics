@@ -11,7 +11,7 @@ public class PluginConfiguration : BasePluginConfiguration
     /// <summary>
     /// Gets or sets a value indicating whether to use strict search.
     /// </summary>
-    public bool UseStrictSearch { get; set; } = true;
+    public bool UseStrictSearch { get; set; }
 
     /// <summary>
     /// Gets or sets a value indicating whether to exclude artist name.
@@ -21,7 +21,7 @@ public class PluginConfiguration : BasePluginConfiguration
     /// <summary>
     /// Gets or sets a value indicating whether to exclude album name.
     /// </summary>
-    public bool ExcludeAlbumName { get; set; } = false;
+    public bool ExcludeAlbumName { get; set; } = true;
 
     /// <summary>
     /// Gets or sets a value indicating whether to enable adaptive retry backoff.

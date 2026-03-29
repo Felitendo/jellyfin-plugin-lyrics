@@ -30,6 +30,36 @@ public class LyricsProvider : ILyricProvider
     private const string SyncedFormat = "lrc";
     private const string PlainFormat = "txt";
 
+    private static readonly string[] ParenthesizedNoise =
+    [
+        "(Official Music Video)",
+        "(Official Video)",
+        "(Official Audio)",
+        "(Official Lyric Video)",
+        "(Lyric Video)",
+        "(Music Video)",
+        "(Visualizer)",
+        "(Visualiser)",
+        "(Audio)",
+        "(Lyrics)",
+        "(MV)",
+        "(HD)",
+        "(HQ)",
+        "[Official Music Video]",
+        "[Official Video]",
+        "[Official Audio]",
+        "[Official Lyric Video]",
+        "[Lyric Video]",
+        "[Music Video]",
+        "[Visualizer]",
+        "[Visualiser]",
+        "[Audio]",
+        "[Lyrics]",
+        "[MV]",
+        "[HD]",
+        "[HQ]"
+    ];
+
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly ILogger<LyricsProvider> _logger;
 
@@ -140,6 +170,43 @@ public class LyricsProvider : ILyricProvider
         }
     }
 
+    private static string CleanSongName(string songName, string? artistName)
+    {
+        var cleaned = songName;
+
+        // Strip "Artist - " prefix from title (common in YouTube downloads).
+        if (!string.IsNullOrEmpty(artistName))
+        {
+            var prefix = artistName + " - ";
+            if (cleaned.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+            {
+                cleaned = cleaned[prefix.Length..];
+            }
+        }
+
+        // Strip parenthesized/bracketed YouTube-style suffixes.
+        foreach (var noise in ParenthesizedNoise)
+        {
+            var index = cleaned.IndexOf(noise, StringComparison.OrdinalIgnoreCase);
+            if (index >= 0)
+            {
+                cleaned = string.Concat(cleaned.AsSpan(0, index), cleaned.AsSpan(index + noise.Length));
+            }
+        }
+
+        // Strip trailing " - ArtistName" (duplicate artist in title).
+        if (!string.IsNullOrEmpty(artistName))
+        {
+            var suffix = " - " + artistName;
+            if (cleaned.EndsWith(suffix, StringComparison.OrdinalIgnoreCase))
+            {
+                cleaned = cleaned[..^suffix.Length];
+            }
+        }
+
+        return cleaned.Trim();
+    }
+
     private static bool IsSupportedLyricSuffix(string suffix)
     {
         return string.Equals(suffix, SyncedSuffix, StringComparison.OrdinalIgnoreCase)
@@ -180,9 +247,10 @@ public class LyricsProvider : ILyricProvider
             return Enumerable.Empty<RemoteLyricInfo>();
         }
 
+        var trackName = CleanSongName(request.SongName, artist);
         var queryStringBuilder = new StringBuilder()
             .Append("track_name=")
-            .Append(HttpUtility.UrlEncode(request.SongName))
+            .Append(HttpUtility.UrlEncode(trackName))
             .Append("&artist_name=")
             .Append(HttpUtility.UrlEncode(artist))
             .Append("&album_name=")
@@ -218,40 +286,64 @@ public class LyricsProvider : ILyricProvider
             return Enumerable.Empty<RemoteLyricInfo>();
         }
 
-        var queryStringBuilder = new StringBuilder()
-            .Append("track_name=")
-            .Append(HttpUtility.UrlEncode(request.SongName));
+        var artistName = request.ArtistNames is { Count: > 0 } ? request.ArtistNames[0] : null;
+        var trackName = CleanSongName(request.SongName, artistName);
+        _logger.LogDebug("Fuzzy search: original song name {Original}, cleaned {Cleaned}, artist {Artist}, album {Album}", request.SongName, trackName, artistName, request.AlbumName);
 
-        if (!ExcludeArtistName)
+        // Try with artist and album first.
+        var results = await SearchLrclib(trackName, ExcludeArtistName ? null : artistName, ExcludeAlbumName ? null : request.AlbumName, cancellationToken).ConfigureAwait(false);
+        if (results.Count > 0)
         {
-            string artist;
-            if (request.ArtistNames is not null
-                && request.ArtistNames.Count > 0)
-            {
-                artist = request.ArtistNames[0];
-            }
-            else
-            {
-                _logger.LogInformation("Artist name is required");
-                return Enumerable.Empty<RemoteLyricInfo>();
-            }
-
-            queryStringBuilder
-                .Append("&artist_name=")
-                .Append(HttpUtility.UrlEncode(artist));
+            return results.OrderByDescending(x => x.Metadata.IsSynced);
         }
 
-        if (!ExcludeAlbumName)
+        // Fallback: try with just track name and artist (no album).
+        if (!ExcludeAlbumName && !string.IsNullOrEmpty(request.AlbumName))
         {
-            if (string.IsNullOrEmpty(request.AlbumName))
+            _logger.LogDebug("No results with album, retrying without album for {Track}", trackName);
+            results = await SearchLrclib(trackName, ExcludeArtistName ? null : artistName, null, cancellationToken).ConfigureAwait(false);
+            if (results.Count > 0)
             {
-                _logger.LogInformation("Album name is required");
-                return Enumerable.Empty<RemoteLyricInfo>();
+                return results.OrderByDescending(x => x.Metadata.IsSynced);
             }
+        }
 
+        // Fallback: try with just track name (no artist, no album).
+        if (!ExcludeArtistName && artistName is not null)
+        {
+            _logger.LogDebug("No results with artist, retrying with only track name for {Track}", trackName);
+            results = await SearchLrclib(trackName, null, null, cancellationToken).ConfigureAwait(false);
+            if (results.Count > 0)
+            {
+                return results.OrderByDescending(x => x.Metadata.IsSynced);
+            }
+        }
+
+        return Enumerable.Empty<RemoteLyricInfo>();
+    }
+
+    private async Task<List<RemoteLyricInfo>> SearchLrclib(
+        string trackName,
+        string? artistName,
+        string? albumName,
+        CancellationToken cancellationToken)
+    {
+        var queryStringBuilder = new StringBuilder()
+            .Append("track_name=")
+            .Append(HttpUtility.UrlEncode(trackName));
+
+        if (!string.IsNullOrEmpty(artistName))
+        {
+            queryStringBuilder
+                .Append("&artist_name=")
+                .Append(HttpUtility.UrlEncode(artistName));
+        }
+
+        if (!string.IsNullOrEmpty(albumName))
+        {
             queryStringBuilder
                 .Append("&album_name=")
-                .Append(HttpUtility.UrlEncode(request.AlbumName));
+                .Append(HttpUtility.UrlEncode(albumName));
         }
 
         var requestUri = new UriBuilder(BaseUrl)
@@ -267,7 +359,7 @@ public class LyricsProvider : ILyricProvider
             .ConfigureAwait(false);
         if (response is null)
         {
-            return Enumerable.Empty<RemoteLyricInfo>();
+            return [];
         }
 
         var results = new List<RemoteLyricInfo>();
@@ -276,9 +368,7 @@ public class LyricsProvider : ILyricProvider
             results.AddRange(GetRemoteLyrics(item));
         }
 
-        var sortedResults = results.OrderByDescending(x => x.Metadata.IsSynced);
-
-        return sortedResults;
+        return results;
     }
 
     private List<RemoteLyricInfo> GetRemoteLyrics(LyricsSearchResponse response)
