@@ -1,0 +1,33 @@
+name: '📋 Update Release Notes'
+
+on:
+  release:
+    types:
+      - released
+      - edited
+
+jobs:
+  update-notes:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4
+        with:
+          ref: master
+
+      - name: Extract changelog from build.yaml
+        id: changelog
+        run: |
+          changelog=$(sed -n '/^changelog: |-$/,/^[^ ]/{ /^changelog: |-$/d; /^[^ ]/d; s/^  //; p; }' build.yaml)
+          echo "body<<EOF" >> "$GITHUB_OUTPUT"
+          echo "$changelog" >> "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
+
+      - name: Update release body
+        if: steps.changelog.outputs.body != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release edit "${{ github.event.release.tag_name }}" --notes "${{ steps.changelog.outputs.body }}"
