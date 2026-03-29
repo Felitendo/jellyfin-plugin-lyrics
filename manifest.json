@@ -8,6 +8,14 @@
         "category": "Metadata",
         "versions": [
             {
+                "version": "1.6.0.0",
+                "changelog": "## v1.6.0.0\n### What's New\n- Added song title cleanup to strip YouTube-style suffixes (Official Music Video, etc.) and duplicate artist names\n- Added progressive search fallback: retries with fewer parameters when no results are found\n- Added multi-artist support: splits \"artist1/artist2\" and tries each artist individually\n- Replace non-synced lyrics with synced ones when available\n- Sped up scheduled lyrics task\n\n### Fixes\n- Fixed DI issue with RetryStateStore causing plugin to malfunction on startup\n- Fixed fuzzy search failing when album name is missing\n- Fixed crash on missing artist or invalid id\n\n### Defaults Changed\n- Strict search is now disabled by default\n- \"Exclude album name\" is now enabled by default",
+                "targetAbi": "10.11.0.0",
+                "sourceUrl": "https://github.com/Felitendo/jellyfin-plugin-lyrics/releases/download/v1.6/lyrics_1.6.0.0.zip",
+                "checksum": "d49d7f29e02f686d5001df2374154e29",
+                "timestamp": "2026-03-29T03:02:22Z"
+            },
+            {
                 "version": "1.5.0.0",
                 "changelog": "## v1.5.0.0\n### What's New\n- Fixed support for Jellyfin 10.11",
                 "targetAbi": "10.11.0.0",
