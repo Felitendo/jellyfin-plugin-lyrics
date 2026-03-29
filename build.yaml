@@ -1,6 +1,6 @@
 name: "Lyrics"
 guid: "F4A1B2C3-D4E5-6F7A-8B9C-0D1E2F3A4B5C"
-version: "1.5"
+version: "1.6"
 targetAbi: "10.11.0.0"
 framework: "net9.0"
 owner: "Felitendo"
@@ -12,6 +12,18 @@ category: "Metadata"
 artifacts:
   - "Jellyfin.Plugin.Lyrics.dll"
 changelog: |-
-  ## v1.5.0.0
+  ## v1.6.0.0
   ### What's New
-  - Fixed support for Jellyfin 10.11
+  - Added song title cleanup to strip YouTube-style suffixes (Official Music Video, etc.) and duplicate artist names
+  - Added progressive search fallback: retries with fewer parameters when no results are found
+  - Replace non-synced lyrics with synced ones when available
+  - Sped up scheduled lyrics task
+
+  ### Fixes
+  - Fixed DI issue with RetryStateStore causing plugin to malfunction on startup
+  - Fixed fuzzy search failing when album name is missing
+  - Fixed crash on missing artist or invalid id
+
+  ### Defaults Changed
+  - Strict search is now disabled by default
+  - "Exclude album name" is now enabled by default
