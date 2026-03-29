@@ -16,6 +16,7 @@ changelog: |-
   ### What's New
   - Added song title cleanup to strip YouTube-style suffixes (Official Music Video, etc.) and duplicate artist names
   - Added progressive search fallback: retries with fewer parameters when no results are found
+  - Added multi-artist support: splits "artist1/artist2" and tries each artist individually
   - Replace non-synced lyrics with synced ones when available
   - Sped up scheduled lyrics task
 

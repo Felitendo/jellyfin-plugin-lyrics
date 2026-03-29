@@ -207,6 +207,35 @@ public class LyricsProvider : ILyricProvider
         return cleaned.Trim();
     }
 
+    private static List<string> SplitArtists(string? artistName)
+    {
+        if (string.IsNullOrEmpty(artistName))
+        {
+            return [];
+        }
+
+        string[] separators = ["/", ";", " & ", ", ", " feat. ", " ft. ", " featuring "];
+        var parts = new List<string> { artistName };
+
+        foreach (var separator in separators)
+        {
+            if (artistName.Contains(separator, StringComparison.OrdinalIgnoreCase))
+            {
+                var split = artistName.Split(separator, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+                foreach (var part in split)
+                {
+                    if (!string.IsNullOrWhiteSpace(part)
+                        && !parts.Contains(part, StringComparer.OrdinalIgnoreCase))
+                    {
+                        parts.Add(part);
+                    }
+                }
+            }
+        }
+
+        return parts;
+    }
+
     private static bool IsSupportedLyricSuffix(string suffix)
     {
         return string.Equals(suffix, SyncedSuffix, StringComparison.OrdinalIgnoreCase)
@@ -286,36 +315,59 @@ public class LyricsProvider : ILyricProvider
             return Enumerable.Empty<RemoteLyricInfo>();
         }
 
-        var artistName = request.ArtistNames is { Count: > 0 } ? request.ArtistNames[0] : null;
-        var trackName = CleanSongName(request.SongName, artistName);
-        _logger.LogDebug("Fuzzy search: original song name {Original}, cleaned {Cleaned}, artist {Artist}, album {Album}", request.SongName, trackName, artistName, request.AlbumName);
+        var rawArtist = request.ArtistNames is { Count: > 0 } ? request.ArtistNames[0] : null;
+        var trackName = CleanSongName(request.SongName, rawArtist);
+        var albumName = ExcludeAlbumName ? null : request.AlbumName;
+        var artists = ExcludeArtistName ? [] : SplitArtists(rawArtist);
+        _logger.LogDebug("Fuzzy search: original song name {Original}, cleaned {Cleaned}, artists {Artists}, album {Album}", request.SongName, trackName, artists, request.AlbumName);
 
-        // Try with artist and album first.
-        var results = await SearchLrclib(trackName, ExcludeArtistName ? null : artistName, ExcludeAlbumName ? null : request.AlbumName, cancellationToken).ConfigureAwait(false);
-        if (results.Count > 0)
+        // Try each artist variant (full combined name first, then individual artists).
+        foreach (var artist in artists)
         {
-            return results.OrderByDescending(x => x.Metadata.IsSynced);
-        }
-
-        // Fallback: try with just track name and artist (no album).
-        if (!ExcludeAlbumName && !string.IsNullOrEmpty(request.AlbumName))
-        {
-            _logger.LogDebug("No results with album, retrying without album for {Track}", trackName);
-            results = await SearchLrclib(trackName, ExcludeArtistName ? null : artistName, null, cancellationToken).ConfigureAwait(false);
+            var results = await SearchLrclib(trackName, artist, albumName, cancellationToken).ConfigureAwait(false);
             if (results.Count > 0)
             {
                 return results.OrderByDescending(x => x.Metadata.IsSynced);
             }
+
+            // Retry without album if we had one.
+            if (!string.IsNullOrEmpty(albumName))
+            {
+                _logger.LogDebug("No results with album for artist {Artist}, retrying without album for {Track}", artist, trackName);
+                results = await SearchLrclib(trackName, artist, null, cancellationToken).ConfigureAwait(false);
+                if (results.Count > 0)
+                {
+                    return results.OrderByDescending(x => x.Metadata.IsSynced);
+                }
+            }
         }
 
-        // Fallback: try with just track name (no artist, no album).
-        if (!ExcludeArtistName && artistName is not null)
+        // Final fallback: try with just track name (no artist, no album).
+        if (artists.Count > 0)
         {
-            _logger.LogDebug("No results with artist, retrying with only track name for {Track}", trackName);
-            results = await SearchLrclib(trackName, null, null, cancellationToken).ConfigureAwait(false);
+            _logger.LogDebug("No results with any artist, retrying with only track name for {Track}", trackName);
+            var fallbackResults = await SearchLrclib(trackName, null, null, cancellationToken).ConfigureAwait(false);
+            if (fallbackResults.Count > 0)
+            {
+                return fallbackResults.OrderByDescending(x => x.Metadata.IsSynced);
+            }
+        }
+        else
+        {
+            // No artist info at all — search by track name only.
+            var results = await SearchLrclib(trackName, null, albumName, cancellationToken).ConfigureAwait(false);
             if (results.Count > 0)
             {
                 return results.OrderByDescending(x => x.Metadata.IsSynced);
+            }
+
+            if (!string.IsNullOrEmpty(albumName))
+            {
+                results = await SearchLrclib(trackName, null, null, cancellationToken).ConfigureAwait(false);
+                if (results.Count > 0)
+                {
+                    return results.OrderByDescending(x => x.Metadata.IsSynced);
+                }
             }
         }
 
