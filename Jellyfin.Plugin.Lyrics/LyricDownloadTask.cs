@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
@@ -196,6 +197,16 @@ public class LyricDownloadTask : IScheduledTask
                     && retryEntry.NextRetryUtc > trackNowUtc)
                 {
                     backoffSkippedCount++;
+                    continue;
+                }
+
+                // Option B workaround: check filesystem directly for existing lyric files
+                // to avoid re-downloading when the DB hasn't registered them yet.
+                var lrcPath = Path.ChangeExtension(audioItem.Path, ".lrc");
+                var txtPath = Path.ChangeExtension(audioItem.Path, ".txt");
+                if (File.Exists(lrcPath) || File.Exists(txtPath))
+                {
+                    alreadySyncedSkippedCount++;
                     continue;
                 }
 
