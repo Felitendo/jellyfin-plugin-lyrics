@@ -200,21 +200,20 @@ public class LyricDownloadTask : IScheduledTask
                     continue;
                 }
 
-                // Option B workaround: check filesystem directly for existing lyric files
-                // to avoid re-downloading when the DB hasn't registered them yet.
+                // Check filesystem directly for existing lyric files to avoid re-downloading when the DB hasn't registered them yet.
+                var lyricInFileFound = false;
                 var lrcPath = Path.ChangeExtension(audioItem.Path, ".lrc");
                 var txtPath = Path.ChangeExtension(audioItem.Path, ".txt");
                 if (File.Exists(lrcPath) || File.Exists(txtPath))
                 {
-                    alreadySyncedSkippedCount++;
-                    continue;
+                    lyricInFileFound = true;
                 }
 
                 try
                 {
                     var existingLyrics = await _lyricManager.GetLyricsAsync(audioItem, cancellationToken).ConfigureAwait(false);
 
-                    if (existingLyrics is null)
+                    if (existingLyrics is null && !lyricInFileFound)
                     {
                         _logger.LogDebug("Searching for lyrics for {Path}", audioItem.Path);
                         var lyricResults = await _lyricManager.SearchLyricsAsync(audioItem, true, cancellationToken).ConfigureAwait(false);
@@ -234,7 +233,7 @@ public class LyricDownloadTask : IScheduledTask
                             }
                         }
                     }
-                    else if (HasSyncedLyrics(existingLyrics))
+                    else if ((existingLyrics is null && lyricInFileFound) || HasSyncedLyrics(existingLyrics!))
                     {
                         alreadySyncedSkippedCount++;
                         stateMutations += ClearRetryState(retryState, itemKey);
