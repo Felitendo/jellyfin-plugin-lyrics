@@ -50,6 +50,18 @@ public class PluginConfiguration : BasePluginConfiguration
     public int[] BackoffScheduleDays { get; set; } = [1, 3, 7, 30];
 
     /// <summary>
+    /// Gets or sets a value indicating whether to filter LRCLIB matches by track duration.
+    /// </summary>
+    public bool EnableDurationFilter { get; set; } = true;
+
+    /// <summary>
+    /// Gets or sets the duration tolerance in seconds for accepting an LRCLIB match.
+    /// Results whose duration differs from the local track by more than this value are rejected.
+    /// Ignored when <see cref="EnableDurationFilter"/> is false.
+    /// </summary>
+    public int DurationToleranceSeconds { get; set; } = 15;
+
+    /// <summary>
     /// Gets or sets the legacy state cursor value.
     /// </summary>
     public int StateCursor { get; set; }

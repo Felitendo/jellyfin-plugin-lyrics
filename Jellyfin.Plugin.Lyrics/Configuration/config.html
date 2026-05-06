@@ -25,6 +25,22 @@
                             <span>Exclude album name from the search parameters.</span>
                         </label>
                         <label class="checkboxContainer">
+                            <input is="emby-checkbox" type="checkbox" id="enableDurationFilter" />
+                            <span>Filter matches by song length (recommended)</span>
+                        </label>
+                        <div id="durationFilterSettings" style="margin-left: 2.2em;">
+                            <p style="margin: 0 0 1em 0; font-size: 0.95em; opacity: 0.8;">
+                                Skip lyrics whose song length is too different from your file. Turn this off to accept any match regardless of length.
+                            </p>
+                            <label>
+                                Duration tolerance (seconds)
+                                <input is="emby-input" type="number" id="durationToleranceSeconds" min="1" step="1" />
+                            </label>
+                            <p style="margin: 0 0 1em 0; font-size: 0.95em; opacity: 0.8;">
+                                How close the song length must be to a lyrics match for the match to count. If wrong lyrics show up on instrumental or interlude tracks, lower this value. If lyrics are missing for songs that should have them, raise it. Default: 15.
+                            </p>
+                        </div>
+                        <label class="checkboxContainer">
                             <input is="emby-checkbox" type="checkbox" id="enableAdaptiveRetryBackoff" />
                             <span>Skip repeated misses (recommended)</span>
                         </label>
@@ -81,6 +97,8 @@
 
                     document.querySelector('#excludeArtistName').checked = config.ExcludeArtistName;
                     document.querySelector('#excludeAlbumName').checked = config.ExcludeAlbumName;
+                    document.querySelector('#enableDurationFilter').checked = config.EnableDurationFilter !== false;
+                    document.querySelector('#durationToleranceSeconds').value = Math.max(parseInt(config.DurationToleranceSeconds, 10) || 15, 1);
 
                     document.querySelector('#enableAdaptiveRetryBackoff').checked = config.EnableAdaptiveRetryBackoff !== false;
                     document.querySelector('#enableRunCap').checked = config.EnableRunCap !== false;
@@ -95,6 +113,7 @@
                     LyricsPluginConfiguration.toggleStrictSearchVisibility();
                     LyricsPluginConfiguration.toggleBackoffVisibility();
                     LyricsPluginConfiguration.toggleRunCapVisibility();
+                    LyricsPluginConfiguration.toggleDurationFilterVisibility();
                     Dashboard.hideLoadingMsg();
                 });
             },
@@ -106,6 +125,10 @@
                     config.UseStrictSearch = document.querySelector('#useStrictSearch').checked;
                     config.ExcludeArtistName = document.querySelector('#excludeArtistName').checked;
                     config.ExcludeAlbumName = document.querySelector('#excludeAlbumName').checked;
+
+                    config.EnableDurationFilter = document.querySelector('#enableDurationFilter').checked;
+                    var durationToleranceValue = parseInt(document.querySelector('#durationToleranceSeconds').value || '15', 10);
+                    config.DurationToleranceSeconds = Number.isFinite(durationToleranceValue) ? Math.max(durationToleranceValue, 1) : 15;
                     config.EnableAdaptiveRetryBackoff = document.querySelector('#enableAdaptiveRetryBackoff').checked;
                     config.EnableRunCap = document.querySelector('#enableRunCap').checked;
 
@@ -154,6 +177,15 @@
                 else {
                     document.getElementById('runCapSettings').classList.add('hide');
                 }
+            },
+
+            toggleDurationFilterVisibility: function () {
+                if (document.getElementById('enableDurationFilter').checked) {
+                    document.getElementById('durationFilterSettings').classList.remove('hide');
+                }
+                else {
+                    document.getElementById('durationFilterSettings').classList.add('hide');
+                }
             }
         };
 
@@ -176,6 +208,10 @@
 
         document.getElementById('enableRunCap').addEventListener('change', function () {
             LyricsPluginConfiguration.toggleRunCapVisibility();
+        });
+
+        document.getElementById('enableDurationFilter').addEventListener('change', function () {
+            LyricsPluginConfiguration.toggleDurationFilterVisibility();
         });
         </script>
     </div>

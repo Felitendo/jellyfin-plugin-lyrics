@@ -80,6 +80,17 @@ public class LyricsProvider : ILyricProvider
 
     private static bool ExcludeAlbumName => LyricsPlugin.Instance?.Configuration.ExcludeAlbumName ?? false;
 
+    private static bool EnableDurationFilter => LyricsPlugin.Instance?.Configuration.EnableDurationFilter ?? true;
+
+    private static int DurationToleranceSeconds
+    {
+        get
+        {
+            var configured = LyricsPlugin.Instance?.Configuration.DurationToleranceSeconds ?? 15;
+            return configured > 0 ? configured : 15;
+        }
+    }
+
     /// <inheritdoc />
     public string Name => LyricsPlugin.Instance!.Name;
 
@@ -242,6 +253,63 @@ public class LyricsProvider : ILyricProvider
             || string.Equals(suffix, PlainSuffix, StringComparison.OrdinalIgnoreCase);
     }
 
+    // Reject results whose duration or artist is incompatible with the request, so a track named
+    // "Faded (Interlude)" can't be matched against an unrelated song with the same title.
+    private bool IsAcceptableMatch(LyricSearchRequest request, LyricsSearchResponse response)
+    {
+        // Tolerance accounts for trailing silence, LAME encoder padding, vinyl-rip fade-outs, and
+        // minor master/remaster differences. The artist check above does the heavy lifting; this
+        // is just a sanity net so a 30-second interlude can't get matched to a 4-minute pop song.
+        if (EnableDurationFilter && request.Duration is not null && response.Duration is not null)
+        {
+            var tolerance = DurationToleranceSeconds;
+            var requestSeconds = TimeSpan.FromTicks(request.Duration.Value).TotalSeconds;
+            var responseSeconds = response.Duration.Value;
+            if (Math.Abs(requestSeconds - responseSeconds) > tolerance)
+            {
+                _logger.LogDebug(
+                    "Rejected LRCLIB match {Id}: duration mismatch (req {Requested:F0}s, got {Got:F0}s)",
+                    response.Id,
+                    requestSeconds,
+                    responseSeconds);
+                return false;
+            }
+        }
+
+        if (request.ArtistNames is { Count: > 0 } && !string.IsNullOrEmpty(response.ArtistName))
+        {
+            var matched = false;
+            foreach (var requested in request.ArtistNames)
+            {
+                foreach (var token in SplitArtists(requested))
+                {
+                    if (response.ArtistName.Contains(token, StringComparison.OrdinalIgnoreCase))
+                    {
+                        matched = true;
+                        break;
+                    }
+                }
+
+                if (matched)
+                {
+                    break;
+                }
+            }
+
+            if (!matched)
+            {
+                _logger.LogDebug(
+                    "Rejected LRCLIB match {Id}: artist mismatch (requested {Requested}, got {Got})",
+                    response.Id,
+                    request.ArtistNames,
+                    response.ArtistName);
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     private async Task<IEnumerable<RemoteLyricInfo>> GetExactMatch(
         LyricSearchRequest request,
         CancellationToken cancellationToken)
@@ -302,6 +370,11 @@ public class LyricsProvider : ILyricProvider
             return Enumerable.Empty<RemoteLyricInfo>();
         }
 
+        if (!IsAcceptableMatch(request, response))
+        {
+            return Enumerable.Empty<RemoteLyricInfo>();
+        }
+
         return GetRemoteLyrics(response);
     }
 
@@ -324,7 +397,7 @@ public class LyricsProvider : ILyricProvider
         // Try each artist variant (full combined name first, then individual artists).
         foreach (var artist in artists)
         {
-            var results = await SearchLrclib(trackName, artist, albumName, cancellationToken).ConfigureAwait(false);
+            var results = await SearchLrclib(request, trackName, artist, albumName, cancellationToken).ConfigureAwait(false);
             if (results.Count > 0)
             {
                 return results.OrderByDescending(x => x.Metadata.IsSynced);
@@ -334,7 +407,7 @@ public class LyricsProvider : ILyricProvider
             if (!string.IsNullOrEmpty(albumName))
             {
                 _logger.LogDebug("No results with album for artist {Artist}, retrying without album for {Track}", artist, trackName);
-                results = await SearchLrclib(trackName, artist, null, cancellationToken).ConfigureAwait(false);
+                results = await SearchLrclib(request, trackName, artist, null, cancellationToken).ConfigureAwait(false);
                 if (results.Count > 0)
                 {
                     return results.OrderByDescending(x => x.Metadata.IsSynced);
@@ -342,20 +415,12 @@ public class LyricsProvider : ILyricProvider
             }
         }
 
-        // Final fallback: try with just track name (no artist, no album).
-        if (artists.Count > 0)
+        // Track-name-only fallback only when no artist info exists at all.
+        // When the user has artists, a track-name-only search would let "Faded (Interlude)"
+        // match any "Faded" by any artist — exactly the bug we're trying to prevent.
+        if (artists.Count == 0)
         {
-            _logger.LogDebug("No results with any artist, retrying with only track name for {Track}", trackName);
-            var fallbackResults = await SearchLrclib(trackName, null, null, cancellationToken).ConfigureAwait(false);
-            if (fallbackResults.Count > 0)
-            {
-                return fallbackResults.OrderByDescending(x => x.Metadata.IsSynced);
-            }
-        }
-        else
-        {
-            // No artist info at all — search by track name only.
-            var results = await SearchLrclib(trackName, null, albumName, cancellationToken).ConfigureAwait(false);
+            var results = await SearchLrclib(request, trackName, null, albumName, cancellationToken).ConfigureAwait(false);
             if (results.Count > 0)
             {
                 return results.OrderByDescending(x => x.Metadata.IsSynced);
@@ -363,7 +428,7 @@ public class LyricsProvider : ILyricProvider
 
             if (!string.IsNullOrEmpty(albumName))
             {
-                results = await SearchLrclib(trackName, null, null, cancellationToken).ConfigureAwait(false);
+                results = await SearchLrclib(request, trackName, null, null, cancellationToken).ConfigureAwait(false);
                 if (results.Count > 0)
                 {
                     return results.OrderByDescending(x => x.Metadata.IsSynced);
@@ -375,6 +440,7 @@ public class LyricsProvider : ILyricProvider
     }
 
     private async Task<List<RemoteLyricInfo>> SearchLrclib(
+        LyricSearchRequest request,
         string trackName,
         string? artistName,
         string? albumName,
@@ -417,6 +483,11 @@ public class LyricsProvider : ILyricProvider
         var results = new List<RemoteLyricInfo>();
         foreach (var item in response)
         {
+            if (!IsAcceptableMatch(request, item))
+            {
+                continue;
+            }
+
             results.AddRange(GetRemoteLyrics(item));
         }
 
@@ -426,6 +497,12 @@ public class LyricsProvider : ILyricProvider
     private List<RemoteLyricInfo> GetRemoteLyrics(LyricsSearchResponse response)
     {
         var results = new List<RemoteLyricInfo>();
+
+        if (response.Instrumental == true)
+        {
+            _logger.LogDebug("Skipping LRCLIB entry {Id} flagged as instrumental", response.Id);
+            return results;
+        }
 
         if (!string.IsNullOrEmpty(response.SyncedLyrics))
         {
