@@ -45,11 +45,28 @@ Looking for **v10.10.7 support**? -> https://github.com/Felitendo/jellyfin-plugi
 - **Missing lyrics for specific tracks?**  
   → Manually refresh metadata (see below)
   → Toggle the `"Use strict search."` option in plugin settings
+  → If a song with very long trailing silence or a remastered version is being skipped, increase `Duration tolerance (seconds)`
+
+- **Wrong lyrics on instrumental / interlude tracks?**  
+  → The plugin filters matches by artist and by duration. If you still see wrong matches, **lower** `Duration tolerance (seconds)` (e.g. `5`) so only very close-duration matches are accepted.
+  → If legitimate songs are being skipped instead, **raise** the value (e.g. `30`).
 
 - **Scheduled task takes too long?**  
   → Turn on `Skip repeated misses` (default on)
   → Turn on `Limit work per run` and reduce `Max songs to check each run`
   → Keep `Retry after days` on `1,3,7,30` unless you want faster/slower retries
+
+### How match filtering works
+
+- **Filter matches by song length** — default on  
+  When on, the plugin compares your local song's length to the length of the lyrics it finds online and skips lyrics whose length is too different. This stops short tracks like intros and interludes from getting lyrics that belong to a completely different song with a similar title.  
+  Turn this off if you want the plugin to accept any match regardless of length (not recommended — you'll get more wrong matches).
+
+- **Duration tolerance (seconds)** — default `15`  
+  Only used when the length filter is on. How close the song length has to be to a lyrics match for the match to count. If they differ by more than this many seconds, the lyrics are skipped.
+  - **Lower** (e.g. `5`) — stricter. Better at catching wrong matches, but might skip correct lyrics if your file has long silence at the end or is a different version (remaster, vinyl rip).
+  - **Higher** (e.g. `30`) — more forgiving. Accepts more correct matches, but lets more wrong ones through.
+  - The artist always has to match too — this setting only controls the length check.
 
 ### How the speed settings work
 
