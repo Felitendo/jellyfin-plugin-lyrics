@@ -1,7 +1,7 @@
 name: "Lyrics"
 guid: "F4A1B2C3-D4E5-6F7A-8B9C-0D1E2F3A4B5C"
-version: "1.6.1"
-targetAbi: "10.11.0.0"
+version: "untagged-ec4d8c129095c5f24ae0"
+targetAbi: "10.11.8.0"
 framework: "net9.0"
 owner: "Felitendo"
 overview: "Lyrics plugin with configurable search options and automatic library scanning"
@@ -12,17 +12,5 @@ category: "Metadata"
 artifacts:
   - "Jellyfin.Plugin.Lyrics.dll"
 changelog: |-
-  ## v1.6.1.0
-  ### What's New
-  - Lyrics alternative discovery: skip re-downloading lyrics that already failed in a previous run
-  - Synced-lyric upgrade now checks the existing sidecar file before replacing plain text
-
-  ### Fixes
-  - Stop matching instrumental tracks against unrelated songs: honor LRCLIB's instrumental flag, validate every match against requested duration and artist, and drop the track-name-only fuzzy fallback when artist info is available (#40)
-  - Scheduled task log: split DB-desync skips from "already synced" skips so plain `.txt` sidecars are no longer counted as synced
-
-  ### Settings
-  - New configurable duration-tolerance filter (default on, ±15s) with UI toggle to tune or disable
-
-  ### Notes
-  - Jellyfin 10.11.6 or newer is now recommended (see README)
+  - fix: stop matching instrumental tracks against unrelated songs (#40) (#47) @Felitendo
+  - Lyrics alternative discovery to avoid re-downloading. (#44) @Lunat1q
