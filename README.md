@@ -18,7 +18,7 @@ Looking for **v10.10.7 support**? -> https://github.com/Felitendo/jellyfin-plugi
 
 ## 🚀 Installation
 
-1. Make sure your Jellyfin server is updated to **version 10.11.0 or higher**
+1. Make sure your Jellyfin server is updated to **version 10.11.6 or higher**
 2. Add the plugin repository URL to Jellyfin:
    ```
    https://raw.githubusercontent.com/Felitendo/jellyfin-plugin-lyrics/master/manifest.json
@@ -36,7 +36,7 @@ Looking for **v10.10.7 support**? -> https://github.com/Felitendo/jellyfin-plugi
 ## 🛠️ Troubleshooting
 
 - **Plugin not appearing?**  
-  → Double check if your Jellyfin version is **10.11.0 or higher**
+  → Double check if your Jellyfin version is **10.11.6 or higher**
 
 - **Lyrics not showing?**  
   → Try to search for songs manually (right click on a song -> edit song text -> click on the search icon)
