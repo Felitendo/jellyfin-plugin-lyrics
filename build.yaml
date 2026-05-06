@@ -1,6 +1,6 @@
 name: "Lyrics"
 guid: "F4A1B2C3-D4E5-6F7A-8B9C-0D1E2F3A4B5C"
-version: "1.6"
+version: "1.6.1"
 targetAbi: "10.11.0.0"
 framework: "net9.0"
 owner: "Felitendo"
@@ -12,19 +12,17 @@ category: "Metadata"
 artifacts:
   - "Jellyfin.Plugin.Lyrics.dll"
 changelog: |-
-  ## v1.6.0.0
+  ## v1.6.1.0
   ### What's New
-  - Added song title cleanup to strip YouTube-style suffixes (Official Music Video, etc.) and duplicate artist names
-  - Added progressive search fallback: retries with fewer parameters when no results are found
-  - Added multi-artist support: splits "artist1/artist2" and tries each artist individually
-  - Replace non-synced lyrics with synced ones when available
-  - Sped up scheduled lyrics task
+  - Lyrics alternative discovery: skip re-downloading lyrics that already failed in a previous run
+  - Synced-lyric upgrade now checks the existing sidecar file before replacing plain text
 
   ### Fixes
-  - Fixed DI issue with RetryStateStore causing plugin to malfunction on startup
-  - Fixed fuzzy search failing when album name is missing
-  - Fixed crash on missing artist or invalid id
+  - Stop matching instrumental tracks against unrelated songs: honor LRCLIB's instrumental flag, validate every match against requested duration and artist, and drop the track-name-only fuzzy fallback when artist info is available (#40)
+  - Scheduled task log: split DB-desync skips from "already synced" skips so plain `.txt` sidecars are no longer counted as synced
 
-  ### Defaults Changed
-  - Strict search is now disabled by default
-  - "Exclude album name" is now enabled by default
+  ### Settings
+  - New configurable duration-tolerance filter (default on, ±15s) with UI toggle to tune or disable
+
+  ### Notes
+  - Jellyfin 10.11.6 or newer is now recommended (see README)
