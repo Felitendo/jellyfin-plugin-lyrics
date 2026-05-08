@@ -8,6 +8,14 @@
         "category": "Metadata",
         "versions": [
             {
+                "version": "1.6.2.0",
+                "changelog": "## v1.6.2.0\n### What's New\n- Auto-removes the official \"LrcLib Lyrics\" plugin (`jellyfin-plugin-lrclib`) on startup if installed, since both plugins register the same lyrics provider and conflict. This plugin is a fork that fixes critical issues \u2014 see README. The old plugin can be reinstalled later to switch back.",
+                "targetAbi": "10.11.0.0",
+                "sourceUrl": "https://github.com/Felitendo/jellyfin-plugin-lyrics/releases/download/v1.6.2/lyrics_1.6.2.0.zip",
+                "checksum": "ee8093940bd444dd028e2c905fe8b5ce",
+                "timestamp": "2026-05-08T09:52:43Z"
+            },
+            {
                 "version": "1.6.1.0",
                 "changelog": "## v1.6.1.0\n### What's New\n- Lyrics alternative discovery: skip re-downloading lyrics that already failed in a previous run\n- Synced-lyric upgrade now checks the existing sidecar file before replacing plain text\n\n### Fixes\n- Stop matching instrumental tracks against unrelated songs: honor LRCLIB's instrumental flag, validate every match against requested duration and artist, and drop the track-name-only fuzzy fallback when artist info is available (#40)\n- Scheduled task log: split DB-desync skips from \"already synced\" skips so plain `.txt` sidecars are no longer counted as synced\n\n### Settings\n- New configurable duration-tolerance filter (default on, \u00b115s) with UI toggle to tune or disable\n\n### Notes\n- Jellyfin 10.11.6 or newer is now recommended (see README)",
                 "targetAbi": "10.11.0.0",
