@@ -32,7 +32,7 @@ Looking for **v10.10.7 support**? -> https://github.com/Felitendo/jellyfin-plugi
 ---
 
 > [!WARNING]
-> This plugin will **automatically uninstall** the official **"LrcLib Lyrics"** plugin (`jellyfin-plugin-lrclib`) if it is installed. Both plugins provide a lyrics provider for the same songs, and running them side-by-side causes conflicts. This plugin is a fork of LrcLib Lyrics that fixes critical issues and adds more features, so using this one is strongly recommended. You can always reinstall the LrcLib Lyrics plugin later if you want to switch back.
+> This plugin will **automatically uninstall** jellyfin's **"LrcLib"** plugin (`jellyfin-plugin-lrclib`) if it is installed. Both plugins provide a lyrics provider for the same songs, and running them side-by-side causes conflicts. This plugin is a fork of LrcLib that fixes critical issues and adds more features, so using this one is strongly recommended. You can always reinstall the LrcLib Lyrics plugin later if you want to switch back.
 
 ---
 
