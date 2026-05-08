@@ -1,4 +1,4 @@
-_extends: jellyfin-meta-plugins
+_extends: jellyfin/jellyfin-meta-plugins
 
 template: |
   <!-- Optional: add a release summary here -->
