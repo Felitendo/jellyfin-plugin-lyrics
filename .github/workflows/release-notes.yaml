@@ -29,5 +29,8 @@ jobs:
         if: steps.changelog.outputs.body != ''
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG_NAME: ${{ github.event.release.tag_name }}
+          BODY: ${{ steps.changelog.outputs.body }}
         run: |
-          gh release edit "${{ github.event.release.tag_name }}" --notes "${{ steps.changelog.outputs.body }}"
+          printf '%s' "$BODY" > "$RUNNER_TEMP/release-notes.md"
+          gh release edit "$TAG_NAME" --notes-file "$RUNNER_TEMP/release-notes.md"
