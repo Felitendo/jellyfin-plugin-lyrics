@@ -22,6 +22,7 @@ public class LyricsPlugin : BasePlugin<PluginConfiguration>, IHasWebPages
         : base(applicationPaths, xmlSerializer)
     {
         Instance = this;
+        CompetingPluginCleanup.Run(applicationPaths);
     }
 
     /// <inheritdoc />

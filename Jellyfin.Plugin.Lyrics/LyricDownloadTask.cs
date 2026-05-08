@@ -77,7 +77,7 @@ public class LyricDownloadTask : IScheduledTask
     }
 
     /// <inheritdoc />
-    public string Name => "Download and upgrade lyrics (new)";
+    public string Name => "Download and upgrade lyrics";
 
     /// <inheritdoc />
     public string Key => "DLLyrics";

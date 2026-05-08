@@ -26,10 +26,13 @@ Looking for **v10.10.7 support**? -> https://github.com/Felitendo/jellyfin-plugi
 3. Open the **Plugin Catalog** in your Jellyfin dashboard  
 4. Look for **"Lyrics"** under the **Metadata** category and install it
 5. Restart Jellyfin
-6. Search for the Plugin "LrcLib" (is sometimes pre-installed) and uninstall it (if it's not installed then skip this step)
-7. Restart Jellyfin again
-8. Go to **Scheduled Tasks** and run **"Download and upgrade lyrics (new)"**
-9. Go to **Libraries** and click on **Scan all Libraries**
+6. Go to **Scheduled Tasks** and run **"Download and upgrade lyrics"**
+7. Go to **Libraries** and click on **Scan all Libraries**
+
+---
+
+> [!WARNING]
+> This plugin will **automatically uninstall** the official **"LrcLib Lyrics"** plugin (`jellyfin-plugin-lrclib`) if it is installed. Both plugins provide a lyrics provider for the same songs, and running them side-by-side causes conflicts. This plugin is a fork of LrcLib Lyrics that fixes critical issues and adds more features, so using this one is strongly recommended. You can always reinstall the LrcLib Lyrics plugin later if you want to switch back.
 
 ---
 
