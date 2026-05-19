@@ -1,7 +1,7 @@
 name: "Lyrics"
 guid: "F4A1B2C3-D4E5-6F7A-8B9C-0D1E2F3A4B5C"
-version: "1.6.2"
-targetAbi: "10.11.0.0"
+version: 2
+targetAbi: "10.11.8.0"
 framework: "net9.0"
 owner: "Felitendo"
 overview: "Lyrics plugin with configurable search options and automatic library scanning"
@@ -12,6 +12,4 @@ category: "Metadata"
 artifacts:
   - "Jellyfin.Plugin.Lyrics.dll"
 changelog: |-
-  ## v1.6.2.0
-  ### What's New
-  - Auto-removes the official "LrcLib Lyrics" plugin (`jellyfin-plugin-lrclib`) on startup if installed, since both plugins register the same lyrics provider and conflict. This plugin is a fork that fixes critical issues — see README. The old plugin can be reinstalled later to switch back.
+  - feat: Lrclib server url parameter (#50) @Nausi-llon
