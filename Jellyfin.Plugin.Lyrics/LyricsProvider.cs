@@ -24,7 +24,7 @@ namespace Jellyfin.Plugin.Lyrics;
 /// </summary>
 public class LyricsProvider : ILyricProvider
 {
-    private const string BaseUrl = "https://lrclib.net";
+    private const string DefaultBaseUrl = "https://lrclib.net";
     private const string SyncedSuffix = "synced";
     private const string PlainSuffix = "plain";
     private const string SyncedFormat = "lrc";
@@ -72,6 +72,15 @@ public class LyricsProvider : ILyricProvider
     {
         _httpClientFactory = httpClientFactory;
         _logger = logger;
+    }
+
+    private static string BaseUrl
+    {
+        get
+        {
+            var configured = LyricsPlugin.Instance?.Configuration.LrclibBaseUrl;
+            return string.IsNullOrWhiteSpace(configured) ? DefaultBaseUrl : configured.TrimEnd('/');
+        }
     }
 
     private static bool UseStrictSearch => LyricsPlugin.Instance?.Configuration.UseStrictSearch ?? true;

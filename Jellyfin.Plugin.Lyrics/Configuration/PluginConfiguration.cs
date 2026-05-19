@@ -62,6 +62,12 @@ public class PluginConfiguration : BasePluginConfiguration
     public int DurationToleranceSeconds { get; set; } = 15;
 
     /// <summary>
+    /// Gets or sets the base URL for the LRCLIB API.
+    /// Defaults to the public instance. Set to a local URL to use a self-hosted instance.
+    /// </summary>
+    public string LrclibBaseUrl { get; set; } = "https://lrclib.net";
+
+    /// <summary>
     /// Gets or sets the legacy state cursor value.
     /// </summary>
     public int StateCursor { get; set; }

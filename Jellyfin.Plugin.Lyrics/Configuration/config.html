@@ -12,6 +12,10 @@
                         <div class="sectionTitleContainer flex align-items-center">
                             <h2 class="sectionTitle">Lyrics Settings:</h2>
                         </div>
+                        <div class="inputContainer">
+                            <label class="inputLabel inputLabelUnfocused" for="lrclibBaseUrl">LRCLIB server URL</label>
+                            <input is="emby-input" type="text" id="lrclibBaseUrl" placeholder="https://lrclib.net" />
+                        </div>
                         <label class="checkboxContainer">
                             <input is="emby-checkbox" type="checkbox" id="useStrictSearch" />
                             <span>Use strict search.</span>
@@ -88,6 +92,7 @@
                 Dashboard.showLoadingMsg();
 
                 ApiClient.getPluginConfiguration(LyricsPluginConfiguration.uniquePluginId).then(function (config) {
+                    document.querySelector('#lrclibBaseUrl').value = config.LrclibBaseUrl || '';
                     document.querySelector('#useStrictSearch').checked = config.UseStrictSearch;
 
                     if (config.UseStrictSearch) {
@@ -122,6 +127,7 @@
                 Dashboard.showLoadingMsg();
                 ApiClient.getPluginConfiguration(LyricsPluginConfiguration.uniquePluginId).then(function (config) {
 
+                    config.LrclibBaseUrl = (document.querySelector('#lrclibBaseUrl').value || '').trim() || 'https://lrclib.net';
                     config.UseStrictSearch = document.querySelector('#useStrictSearch').checked;
                     config.ExcludeArtistName = document.querySelector('#excludeArtistName').checked;
                     config.ExcludeAlbumName = document.querySelector('#excludeAlbumName').checked;
