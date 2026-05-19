@@ -157,8 +157,15 @@ public class LyricsProvider : ILyricProvider
         {
             var requestUri = BuildLrclibUri($"api/get/{splitId[0]}");
 
-            var response = await _httpClientFactory.CreateClient(NamedClient.Default)
-                .GetFromJsonAsync<LyricsSearchResponse>(requestUri, cancellationToken: cancellationToken)
+            var httpClient = _httpClientFactory.CreateClient(NamedClient.Default);
+            using var httpResponse = await LrclibRateLimiter.SendAsync(
+                httpClient,
+                () => new HttpRequestMessage(HttpMethod.Get, requestUri),
+                _logger,
+                cancellationToken).ConfigureAwait(false);
+            httpResponse.EnsureSuccessStatusCode();
+            var response = await httpResponse.Content
+                .ReadFromJsonAsync<LyricsSearchResponse>(cancellationToken)
                 .ConfigureAwait(false);
             if (response is null)
             {
@@ -392,8 +399,14 @@ public class LyricsProvider : ILyricProvider
 
         var httpClient = _httpClientFactory.CreateClient(NamedClient.Default);
 
-        var response = await httpClient
-            .GetFromJsonAsync<LyricsSearchResponse>(requestUri, cancellationToken: cancellationToken)
+        using var httpResponse = await LrclibRateLimiter.SendAsync(
+            httpClient,
+            () => new HttpRequestMessage(HttpMethod.Get, requestUri),
+            _logger,
+            cancellationToken).ConfigureAwait(false);
+        httpResponse.EnsureSuccessStatusCode();
+        var response = await httpResponse.Content
+            .ReadFromJsonAsync<LyricsSearchResponse>(cancellationToken)
             .ConfigureAwait(false);
         if (response is null)
         {
@@ -498,8 +511,14 @@ public class LyricsProvider : ILyricProvider
 
         var httpClient = _httpClientFactory.CreateClient(NamedClient.Default);
 
-        var response = await httpClient
-            .GetFromJsonAsync<IReadOnlyList<LyricsSearchResponse>>(requestUri, cancellationToken: cancellationToken)
+        using var httpResponse = await LrclibRateLimiter.SendAsync(
+            httpClient,
+            () => new HttpRequestMessage(HttpMethod.Get, requestUri),
+            _logger,
+            cancellationToken).ConfigureAwait(false);
+        httpResponse.EnsureSuccessStatusCode();
+        var response = await httpResponse.Content
+            .ReadFromJsonAsync<IReadOnlyList<LyricsSearchResponse>>(cancellationToken)
             .ConfigureAwait(false);
         if (response is null)
         {
