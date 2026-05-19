@@ -79,7 +79,19 @@ public class LyricsProvider : ILyricProvider
         get
         {
             var configured = LyricsPlugin.Instance?.Configuration.LrclibBaseUrl;
-            return string.IsNullOrWhiteSpace(configured) ? DefaultBaseUrl : configured.TrimEnd('/');
+            if (string.IsNullOrWhiteSpace(configured))
+            {
+                return DefaultBaseUrl;
+            }
+
+            var trimmed = configured.Trim().TrimEnd('/');
+            if (Uri.TryCreate(trimmed, UriKind.Absolute, out var uri)
+                && (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps))
+            {
+                return trimmed;
+            }
+
+            return DefaultBaseUrl;
         }
     }
 
@@ -143,13 +155,10 @@ public class LyricsProvider : ILyricProvider
 
         try
         {
-            var requestUri = new UriBuilder(BaseUrl)
-            {
-                Path = $"/api/get/{splitId[0]}"
-            };
+            var requestUri = BuildLrclibUri($"api/get/{splitId[0]}");
 
             var response = await _httpClientFactory.CreateClient(NamedClient.Default)
-                .GetFromJsonAsync<LyricsSearchResponse>(requestUri.Uri, cancellationToken: cancellationToken)
+                .GetFromJsonAsync<LyricsSearchResponse>(requestUri, cancellationToken: cancellationToken)
                 .ConfigureAwait(false);
             if (response is null)
             {
@@ -188,6 +197,22 @@ public class LyricsProvider : ILyricProvider
                 id);
             throw new ResourceNotFoundException($"Unable to get results for id {id}");
         }
+    }
+
+    // UriBuilder.Path overwrites any existing path, which breaks reverse-proxy
+    // self-hosts mounted under a subpath (e.g. https://example.com/lrclib).
+    // Compose against the base URI so the configured path is preserved.
+    private static Uri BuildLrclibUri(string relativePath, string? query = null)
+    {
+        var builder = new UriBuilder(BaseUrl);
+        var basePath = builder.Path ?? string.Empty;
+        builder.Path = basePath.TrimEnd('/') + "/" + relativePath.TrimStart('/');
+        if (!string.IsNullOrEmpty(query))
+        {
+            builder.Query = query;
+        }
+
+        return builder.Uri;
     }
 
     private static string CleanSongName(string songName, string? artistName)
@@ -363,16 +388,12 @@ public class LyricsProvider : ILyricProvider
             .Append(HttpUtility.UrlEncode(request.AlbumName))
             .Append("&duration=")
             .Append(TimeSpan.FromTicks(request.Duration.Value).TotalSeconds.ToString(CultureInfo.InvariantCulture));
-        var requestUri = new UriBuilder(BaseUrl)
-        {
-            Path = "/api/get",
-            Query = queryStringBuilder.ToString()
-        };
+        var requestUri = BuildLrclibUri("api/get", queryStringBuilder.ToString());
 
         var httpClient = _httpClientFactory.CreateClient(NamedClient.Default);
 
         var response = await httpClient
-            .GetFromJsonAsync<LyricsSearchResponse>(requestUri.Uri, cancellationToken: cancellationToken)
+            .GetFromJsonAsync<LyricsSearchResponse>(requestUri, cancellationToken: cancellationToken)
             .ConfigureAwait(false);
         if (response is null)
         {
@@ -473,16 +494,12 @@ public class LyricsProvider : ILyricProvider
                 .Append(HttpUtility.UrlEncode(albumName));
         }
 
-        var requestUri = new UriBuilder(BaseUrl)
-        {
-            Path = "/api/search",
-            Query = queryStringBuilder.ToString()
-        };
+        var requestUri = BuildLrclibUri("api/search", queryStringBuilder.ToString());
 
         var httpClient = _httpClientFactory.CreateClient(NamedClient.Default);
 
         var response = await httpClient
-            .GetFromJsonAsync<IReadOnlyList<LyricsSearchResponse>>(requestUri.Uri, cancellationToken: cancellationToken)
+            .GetFromJsonAsync<IReadOnlyList<LyricsSearchResponse>>(requestUri, cancellationToken: cancellationToken)
             .ConfigureAwait(false);
         if (response is null)
         {
