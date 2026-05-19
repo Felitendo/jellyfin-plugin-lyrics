@@ -22,6 +22,13 @@ internal static class LrclibRateLimiter
     private static readonly TimeSpan FallbackRetryAfter = TimeSpan.FromSeconds(5);
 
     private static readonly SemaphoreSlim _gate = new(1, 1);
+
+    private static readonly ProductInfoHeaderValue _uaProduct =
+        new("jellyfin-plugin-lyrics", ResolveVersion());
+
+    private static readonly ProductInfoHeaderValue _uaComment =
+        new("(+https://github.com/Felitendo/jellyfin-plugin-lyrics)");
+
     private static DateTime _earliestNextRequestUtc = DateTime.MinValue;
 
     /// <summary>
@@ -44,8 +51,10 @@ internal static class LrclibRateLimiter
         {
             await WaitForSlotAsync(cancellationToken).ConfigureAwait(false);
 
+            var request = requestFactory();
+            ApplyUserAgent(request);
             var response = await client
-                .SendAsync(requestFactory(), HttpCompletionOption.ResponseHeadersRead, cancellationToken)
+                .SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken)
                 .ConfigureAwait(false);
 
             if (response.StatusCode != HttpStatusCode.TooManyRequests || attempt >= Max429Retries)
@@ -95,6 +104,24 @@ internal static class LrclibRateLimiter
         {
             _gate.Release();
         }
+    }
+
+    /// <summary>
+    /// Stamps every outbound LRCLIB request with a fixed, identifiable User-Agent so the LRCLIB
+    /// operators can differentiate this plugin from jellyfin/jellyfin-plugin-lrclib (see issue #49).
+    /// </summary>
+    private static void ApplyUserAgent(HttpRequestMessage request)
+    {
+        request.Headers.UserAgent.Clear();
+        request.Headers.UserAgent.Add(_uaProduct);
+        request.Headers.UserAgent.Add(_uaComment);
+    }
+
+    private static string ResolveVersion()
+    {
+        var version = LyricsPlugin.Instance?.Version
+            ?? typeof(LrclibRateLimiter).Assembly.GetName().Version;
+        return version?.ToString() ?? "unknown";
     }
 
     private static TimeSpan ResolveRetryAfter(RetryConditionHeaderValue? header)
