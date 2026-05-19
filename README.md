@@ -11,6 +11,7 @@ Looking for **v10.10.7 support**? -> https://github.com/Felitendo/jellyfin-plugi
 - 🔄 Automatically downloads lyrics for your entire library  
 - 🎼 Seamlessly integrates with Jellyfin’s music player  
 - 🌐 Fetches lyrics directly from [lrclib.net](https://lrclib.net)  
+- 🏠 Optional self-hosted LRCLIB instance support (advanced)
 - 🕒 Real-time lyrics display during playback  
 - ⚡ Smarter scheduled task that avoids retrying the same failed songs every day  
 
@@ -89,7 +90,6 @@ Looking for **v10.10.7 support**? -> https://github.com/Felitendo/jellyfin-plugi
 - **Good starting values**
   - Small library: `Max songs = 2000` (default)
   - Large library / slow server: `Max songs = 500-1000`
-
 ---
 
 ## 🔄 Manual Refresh
