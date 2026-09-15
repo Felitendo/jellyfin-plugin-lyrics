@@ -288,6 +288,53 @@ public class LyricsProvider : ILyricProvider
         return parts;
     }
 
+    // Jellyfin fills ArtistNames from the track tag and AlbumArtistsNames from the album tag.
+    // Files carrying only an album artist (compilations, classical rips, many downloads) would
+    // otherwise be dropped before a single request goes out.
+    private static string? GetPrimaryArtist(LyricSearchRequest request)
+    {
+        if (request.ArtistNames is { Count: > 0 })
+        {
+            return request.ArtistNames[0];
+        }
+
+        if (request.AlbumArtistsNames is { Count: > 0 })
+        {
+            return request.AlbumArtistsNames[0];
+        }
+
+        return null;
+    }
+
+    // Every artist worth querying, most specific first: each tagged track artist together with the
+    // individual names its combined form splits into, then the album artists as a fallback.
+    private static List<string> GetArtistCandidates(LyricSearchRequest request)
+    {
+        var candidates = new List<string>();
+        AddArtistCandidates(candidates, request.ArtistNames);
+        AddArtistCandidates(candidates, request.AlbumArtistsNames);
+        return candidates;
+    }
+
+    private static void AddArtistCandidates(List<string> candidates, IReadOnlyList<string>? names)
+    {
+        if (names is null)
+        {
+            return;
+        }
+
+        foreach (var name in names)
+        {
+            foreach (var token in SplitArtists(name))
+            {
+                if (!candidates.Contains(token, StringComparer.OrdinalIgnoreCase))
+                {
+                    candidates.Add(token);
+                }
+            }
+        }
+    }
+
     private static bool IsSupportedLyricSuffix(string suffix)
     {
         return string.Equals(suffix, SyncedSuffix, StringComparison.OrdinalIgnoreCase)
@@ -317,22 +364,15 @@ public class LyricsProvider : ILyricProvider
             }
         }
 
-        if (request.ArtistNames is { Count: > 0 } && !string.IsNullOrEmpty(response.ArtistName))
+        var requestedArtists = GetArtistCandidates(request);
+        if (requestedArtists.Count > 0 && !string.IsNullOrEmpty(response.ArtistName))
         {
             var matched = false;
-            foreach (var requested in request.ArtistNames)
+            foreach (var token in requestedArtists)
             {
-                foreach (var token in SplitArtists(requested))
+                if (response.ArtistName.Contains(token, StringComparison.OrdinalIgnoreCase))
                 {
-                    if (response.ArtistName.Contains(token, StringComparison.OrdinalIgnoreCase))
-                    {
-                        matched = true;
-                        break;
-                    }
-                }
-
-                if (matched)
-                {
+                    matched = true;
                     break;
                 }
             }
@@ -342,7 +382,7 @@ public class LyricsProvider : ILyricProvider
                 _logger.LogDebug(
                     "Rejected LRCLIB match {Id}: artist mismatch (requested {Requested}, got {Got})",
                     response.Id,
-                    request.ArtistNames,
+                    requestedArtists,
                     response.ArtistName);
                 return false;
             }
@@ -361,13 +401,8 @@ public class LyricsProvider : ILyricProvider
             return Enumerable.Empty<RemoteLyricInfo>();
         }
 
-        string artist;
-        if (request.ArtistNames is not null
-            && request.ArtistNames.Count > 0)
-        {
-            artist = request.ArtistNames[0];
-        }
-        else
+        var artist = GetPrimaryArtist(request);
+        if (string.IsNullOrEmpty(artist))
         {
             _logger.LogInformation("Artist name is required");
             return Enumerable.Empty<RemoteLyricInfo>();
@@ -431,10 +466,10 @@ public class LyricsProvider : ILyricProvider
             return Enumerable.Empty<RemoteLyricInfo>();
         }
 
-        var rawArtist = request.ArtistNames is { Count: > 0 } ? request.ArtistNames[0] : null;
+        var rawArtist = GetPrimaryArtist(request);
         var trackName = CleanSongName(request.SongName, rawArtist);
         var albumName = ExcludeAlbumName ? null : request.AlbumName;
-        var artists = ExcludeArtistName ? [] : SplitArtists(rawArtist);
+        var artists = ExcludeArtistName ? [] : GetArtistCandidates(request);
         _logger.LogDebug("Fuzzy search: original song name {Original}, cleaned {Cleaned}, artists {Artists}, album {Album}", request.SongName, trackName, artists, request.AlbumName);
 
         // Try each artist variant (full combined name first, then individual artists).
