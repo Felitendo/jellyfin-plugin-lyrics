@@ -1,6 +1,6 @@
 name: "Lyrics"
 guid: "F4A1B2C3-D4E5-6F7A-8B9C-0D1E2F3A4B5C"
-version: "1.6.6"
+version: "1.7.0"
 targetAbi: "10.11.0.0"
 framework: "net9.0"
 owner: "Felitendo"
@@ -12,6 +12,12 @@ category: "Metadata"
 artifacts:
   - "Jellyfin.Plugin.Lyrics.dll"
 changelog: |-
-  ## v1.6.6.0
+  ## v1.7.0.0
+  ### New
+  - Jellyfin 12 support. Every release now ships two builds, one for Jellyfin 12 and one for Jellyfin 10.11, and Jellyfin installs the right one for your server automatically.
+  - Jellyfin 10.11.0 and newer are supported again. The previous release required at least 10.11.6.
+  - New "Disable rate limiting" option for self-hosted LRCLIB servers. It removes the delay between requests, which speeds up large libraries. Requests to the public lrclib.net stay rate limited.
   ### Fixes
-  - The lyrics task no longer re-downloads tracks that already have synced lyrics on disk. When a track's lyrics were saved but the database still reported them as plain (Jellyfin doesn't refresh metadata after a download until the next library scan), the task kept "upgrading" the same tracks on every run. It now trusts the synced .lrc file already on disk and skips it. -> #43
+  - Tracks that only have an album artist tag (compilations, classical music, many rips) now get lyrics. Strict search used to give up without an artist tag, and fuzzy search ignored the album artist entirely.
+  - Fuzzy search now tries every artist tagged on a track instead of only the first one.
+  - A system clock jump (NTP correction, VM resume) can no longer stall lyric requests.
