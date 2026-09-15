@@ -1,12 +1,38 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>net9.0</TargetFramework>
+        <!-- Build target selector. The same source produces two artifacts, one per Jellyfin
+             line, never one DLL for both:
+               -p:JellyfinTarget=jf10  -> Jellyfin 10.11.x, .NET 9  (default)
+               -p:JellyfinTarget=jf12  -> Jellyfin 12.x,    .NET 10
+             MSBuild also picks this up from the environment, which is how scripts/build-targets.py
+             drives jprm - jprm builds a fixed dotnet command line and cannot pass -p:. -->
+        <JellyfinTarget Condition="'$(JellyfinTarget)' == ''">jf10</JellyfinTarget>
+
         <GenerateDocumentationFile>true</GenerateDocumentationFile>
         <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
         <Nullable>enable</Nullable>
         <AnalysisMode>AllEnabledByDefault</AnalysisMode>
         <CodeAnalysisRuleSet>../jellyfin.ruleset</CodeAnalysisRuleSet>
+    </PropertyGroup>
+
+    <!-- Jellyfin 10.11.x / .NET 9. Pinned to the 10.11.0 floor rather than the newest patch so the
+         artifact loads across the whole 10.11.x line: a newer host satisfies the lower reference,
+         while linking against a newer one breaks older hosts with a TypeLoadException (see #55). -->
+    <PropertyGroup Condition="'$(JellyfinTarget)' == 'jf10'">
+        <TargetFramework>net9.0</TargetFramework>
+        <JellyfinVersion>10.11.0</JellyfinVersion>
+        <HttpExtensionsVersion>9.0.4</HttpExtensionsVersion>
+        <!-- Explicit target symbol so code never has to infer the Jellyfin line from the TFM. -->
+        <DefineConstants>$(DefineConstants);JF10</DefineConstants>
+    </PropertyGroup>
+
+    <!-- Jellyfin 12.x / .NET 10. The Jellyfin 12.0.0 packages ship lib/net10.0 only. -->
+    <PropertyGroup Condition="'$(JellyfinTarget)' == 'jf12'">
+        <TargetFramework>net10.0</TargetFramework>
+        <JellyfinVersion>12.0.0</JellyfinVersion>
+        <HttpExtensionsVersion>10.0.0</HttpExtensionsVersion>
+        <DefineConstants>$(DefineConstants);JF12</DefineConstants>
     </PropertyGroup>
 
 	<ItemGroup>
@@ -15,10 +41,10 @@
 	</ItemGroup>
 	
     <ItemGroup>
-      <PackageReference Include="Jellyfin.Common" Version="10.11.6" />
-      <PackageReference Include="Jellyfin.Controller" Version="10.11.6" />
-      <PackageReference Include="Jellyfin.Model" Version="10.11.6" />
-      <PackageReference Include="Microsoft.Extensions.Http" Version="9.0.4" />
+      <PackageReference Include="Jellyfin.Common" Version="$(JellyfinVersion)" />
+      <PackageReference Include="Jellyfin.Controller" Version="$(JellyfinVersion)" />
+      <PackageReference Include="Jellyfin.Model" Version="$(JellyfinVersion)" />
+      <PackageReference Include="Microsoft.Extensions.Http" Version="$(HttpExtensionsVersion)" />
     </ItemGroup>
     
     <ItemGroup>

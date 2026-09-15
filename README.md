@@ -19,7 +19,7 @@ Looking for **v10.10.7 support**? -> https://github.com/Felitendo/jellyfin-plugi
 
 ## 🚀 Installation
 
-1. Make sure your Jellyfin server is updated to **version 10.11.6 or higher**
+1. Make sure your Jellyfin server is on **version 10.11.0 or higher** (Jellyfin 12 is supported too)
 2. If jellyfin's **"LrcLib"** plugin (`jellyfin-plugin-lrclib`) is installed, uninstall it first to avoid conflicts:
    - Go to **Dashboard → Plugins → My Plugins**
    - Find **"LrcLib"**, click it, then click **Uninstall** and confirm
@@ -39,7 +39,7 @@ Looking for **v10.10.7 support**? -> https://github.com/Felitendo/jellyfin-plugi
 ## 🛠️ Troubleshooting
 
 - **Plugin not appearing?**  
-  → Double check if your Jellyfin version is **10.11.6 or higher**
+  → Double check if your Jellyfin version is **10.11.0 or higher**
 
 - **Lyrics not showing?**  
   → Try to search for songs manually (right click on a song -> edit song text -> click on the search icon)

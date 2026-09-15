@@ -44,6 +44,8 @@
         <Rule Id="CA1725" Action="Error" />
         <!-- error on CA1725: Call async methods when in an async method -->
         <Rule Id="CA1727" Action="Error" />
+        <!-- disable warning CA1873: Avoid potentially expensive logging (.NET 10 analyzer) -->
+        <Rule Id="CA1873" Action="Info" />
         <!-- error on CA1843: Do not use 'WaitAll' with a single task -->
         <Rule Id="CA1843" Action="Error" />
         <!-- error on CA2016: Forward the CancellationToken parameter to methods that take one

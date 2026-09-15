@@ -15,20 +15,28 @@ jobs:
         with:
           ref: "master"
 
+      # Both SDKs: the Jellyfin 10.11 artifact is net9.0, the Jellyfin 12 one net10.0.
       - name: Setup .NET
-        uses: actions/setup-dotnet@3447fd6a9f9e57506b15f895c5b76d3b197dc7c2 # v3
+        uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4
         with:
-          dotnet-version: 9.0.x
+          dotnet-version: |
+            9.0.x
+            10.0.x
+
+      # A managed Python rather than the runner's system one, which may refuse pip installs
+      # (PEP 668). The build scripts and jprm must share one interpreter for PyYAML.
+      - name: Setup Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: '3.12'
 
       - name: Setup jprm
-        run: |
-          pip install --user jprm
+        run: python -m pip install jprm
 
+      # One artifact per Jellyfin line, same plugin version, different targetAbi.
       - name: Build Jellyfin Plugin
-        uses: oddstr13/jellyfin-plugin-repository-manager@eabb903cdac8a7f6d94df887c6910b5720ec48f9 # v1.0.11
-        id: jprm
-        with:
-          dotnet-target: net9.0
+        id: build
+        run: python scripts/build_targets.py --output ./artifacts
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
@@ -36,21 +44,36 @@ jobs:
           name: build-artifact
           retention-days: 30
           if-no-files-found: error
-          path: ${{ steps.jprm.outputs.artifact }}
+          path: ./artifacts/*.zip
 
-      - name: Upload to Release
-        id: release
+      - name: Upload Jellyfin 12 build to Release
+        id: release_jf12
         if: ${{ github.event_name == 'release' }}
         uses: shogo82148/actions-upload-release-asset@dccd6d23e64fd6a746dce6814c0bde0a04886085 # v1.7.2
         with:
           upload_url: ${{ github.event.release.upload_url }}
           overwrite: true
-          asset_path: ${{ steps.jprm.outputs.artifact }}
+          asset_path: ${{ steps.build.outputs.jf12_artifact }}
 
+      - name: Upload Jellyfin 10.11 build to Release
+        id: release_jf10
+        if: ${{ github.event_name == 'release' }}
+        uses: shogo82148/actions-upload-release-asset@dccd6d23e64fd6a746dce6814c0bde0a04886085 # v1.7.2
+        with:
+          upload_url: ${{ github.event.release.upload_url }}
+          overwrite: true
+          asset_path: ${{ steps.build.outputs.jf10_artifact }}
+
+      # Not `jprm repo add`: it drops any existing entry whose version matches the one being
+      # added, so it cannot write the two entries this release needs. See the script.
       - name: Update manifest
         if: ${{ github.event_name == 'release' }}
         run: |
-          jprm repo add --plugin-url ${{ steps.release.outputs.browser_download_url }} . ${{ steps.jprm.outputs.artifact }}
+          python scripts/update_manifest.py \
+            --jf12-zip "${{ steps.build.outputs.jf12_artifact }}" \
+            --jf12-url "${{ steps.release_jf12.outputs.browser_download_url }}" \
+            --jf10-zip "${{ steps.build.outputs.jf10_artifact }}" \
+            --jf10-url "${{ steps.release_jf10.outputs.browser_download_url }}"
 
       - name: Commit manifest
         if: ${{ github.event_name == 'release' }}
