@@ -70,6 +70,13 @@ public class PluginConfiguration : BasePluginConfiguration
     public string LrclibBaseUrl { get; set; } = "https://lrclib.net";
 
     /// <summary>
+    /// Gets or sets a value indicating whether the minimum gap between LRCLIB requests is removed.
+    /// Only honored when <see cref="LrclibBaseUrl"/> points at a self-hosted instance; requests to
+    /// the public lrclib.net stay rate limited regardless of this setting.
+    /// </summary>
+    public bool DisableRateLimit { get; set; }
+
+    /// <summary>
     /// Gets or sets the legacy state cursor value.
     /// </summary>
     public int StateCursor { get; set; }

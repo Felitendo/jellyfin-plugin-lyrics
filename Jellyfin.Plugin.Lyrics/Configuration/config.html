@@ -77,6 +77,17 @@
                                 Only change this if you run your own LRCLIB instance and want the plugin to query it instead.
                             </p>
                         </div>
+                        <label class="checkboxContainer">
+                            <input is="emby-checkbox" type="checkbox" id="disableRateLimit" />
+                            <span>Disable rate limiting</span>
+                        </label>
+                        <div class="fieldDescription checkboxFieldDescription" style="margin-left: 2.2em;">
+                            <p style="margin: 0 0 1em 0; font-size: 0.95em; opacity: 0.8;">
+                                Removes the delay between requests, which speeds up large libraries considerably. This
+                                only takes effect with your own LRCLIB server configured above &mdash; requests to the
+                                public lrclib.net stay rate limited either way.
+                            </p>
+                        </div>
                         <br />
                         <div>
                             <button is="emby-button" type="submit" data-theme="b" class="raised button-submit block">
@@ -96,6 +107,7 @@
 
                 ApiClient.getPluginConfiguration(LyricsPluginConfiguration.uniquePluginId).then(function (config) {
                     document.querySelector('#lrclibBaseUrl').value = config.LrclibBaseUrl || '';
+                    document.querySelector('#disableRateLimit').checked = config.DisableRateLimit === true;
                     document.querySelector('#useStrictSearch').checked = config.UseStrictSearch;
 
                     if (config.UseStrictSearch) {
@@ -131,6 +143,7 @@
                 ApiClient.getPluginConfiguration(LyricsPluginConfiguration.uniquePluginId).then(function (config) {
 
                     config.LrclibBaseUrl = (document.querySelector('#lrclibBaseUrl').value || '').trim();
+                    config.DisableRateLimit = document.querySelector('#disableRateLimit').checked;
                     config.UseStrictSearch = document.querySelector('#useStrictSearch').checked;
                     config.ExcludeArtistName = document.querySelector('#excludeArtistName').checked;
                     config.ExcludeAlbumName = document.querySelector('#excludeAlbumName').checked;
