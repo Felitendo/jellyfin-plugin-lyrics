@@ -1,12 +1,26 @@
-# 🎶 Jellyfin Lyrics Plugin
+<p align="center">
+  <img width="200" src="res/jellyfin-plugin-lyrics.svg" alt="Jellyfin Lyrics Plugin">
+</p>
 
-A plugin for **Jellyfin** that automatically downloads and displays lyrics for songs in your music library using [lrclib.net](https://lrclib.net).
+<h1 align="center">Jellyfin Lyrics Plugin</h1>
 
-Looking for **v10.10.7 support**? -> https://github.com/Felitendo/jellyfin-plugin-lyrics-v10.10.7
+<h3 align="center">Lyrics for your whole music library, synced while you listen.</h3>
+
+<p align="center">
+  Downloads them automatically from <a href="https://lrclib.net">lrclib.net</a> and shows them in <a href="https://jellyfin.org">Jellyfin</a>'s music player.
+</p>
+
+<h5 align="center">
+  <a href="#-features">Features</a> |
+  <a href="#-installation">Install</a> |
+  <a href="https://github.com/Felitendo/jellyfin-plugin-lyrics/issues">Report a bug</a>
+</h5>
 
 <p align="center">
   <a href="https://buymeacoffee.com/felitendo"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" height="48"></a>
 </p>
+
+Looking for **v10.10.7 support**? -> https://github.com/Felitendo/jellyfin-plugin-lyrics-v10.10.7
 
 ---
 

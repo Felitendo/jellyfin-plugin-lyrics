@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0.0 11.5 512.0 512.0" width="512" height="512">
+  <!-- The triangle is the Jellyfin icon from jellyfin-ux (CC BY-SA 4.0, Jellyfin contributors) with a note in place of its inner shape. -->
+  <defs>
+    <linearGradient id="jf" gradientUnits="userSpaceOnUse" x1="110.25" y1="213.3" x2="496.14" y2="436.09"><stop offset="0" stop-color="#aa5cc3"/><stop offset=".25" stop-color="#916fdc"/><stop offset=".5" stop-color="#7282e8"/><stop offset=".75" stop-color="#4a94e7"/><stop offset="1" stop-color="#00a4dc"/></linearGradient>
+    <linearGradient id="jf-note" gradientUnits="userSpaceOnUse" x1="196" y1="180" x2="324" y2="400"><stop offset="0" stop-color="#aa5cc3"/><stop offset=".25" stop-color="#916fdc"/><stop offset=".5" stop-color="#7282e8"/><stop offset=".75" stop-color="#4a94e7"/><stop offset="1" stop-color="#00a4dc"/></linearGradient>
+    <filter id="bo-soft" x="-20%" y="-20%" width="140%" height="150%"><feDropShadow dx="0" dy="10" stdDeviation="12" flood-color="#04213a" flood-opacity=".35"/></filter>
+  </defs>
+  <g filter="url(#bo-soft)">
+    <path d="M256,23.3c-61.6,0-259.8,359.4-229.6,420.1s429.3,60,459.2,0S317.6,23.3,256,23.3z M406.5,390.8c-19.6,39.3-281.1,39.8-300.9,0s110.1-275.3,150.4-275.3S426.1,351.4,406.5,390.8z" fill="url(#jf)"/>
+    <g fill="url(#jf-note)">
+      <path d="M252 360 L252 186 A12 12 0 0 1 276 186 C280 216 334 228 326 290 C325 299 311 300 312 290 C315 258 298 244 276 238 L276 360 Z"/>
+      <ellipse cx="236" cy="364" rx="44" ry="32" transform="rotate(-20 236 364)"/>
+    </g>
+  </g>
+</svg>
