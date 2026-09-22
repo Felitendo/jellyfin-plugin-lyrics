@@ -4,6 +4,10 @@ A plugin for **Jellyfin** that automatically downloads and displays lyrics for s
 
 Looking for **v10.10.7 support**? -> https://github.com/Felitendo/jellyfin-plugin-lyrics-v10.10.7
 
+<p align="center">
+  <a href="https://buymeacoffee.com/felitendo"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" height="48"></a>
+</p>
+
 ---
 
 ## ✨ Features
@@ -110,5 +114,4 @@ Feel free to open a **Pull Request**, or suggest new features / report bugs via 
 
 ## 📬 Support
 
-👉 [Create an Issue](https://github.com/Felitendo/jellyfin-plugin-lyrics/issues)  
-☕ [Buy Me a Coffee](https://buymeacoffee.com/felitendo)
+👉 [Create an Issue](https://github.com/Felitendo/jellyfin-plugin-lyrics/issues)
