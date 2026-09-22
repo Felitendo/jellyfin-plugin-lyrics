@@ -110,4 +110,5 @@ Feel free to open a **Pull Request**, or suggest new features / report bugs via 
 
 ## 📬 Support
 
-👉 [Create an Issue](https://github.com/Felitendo/jellyfin-plugin-lyrics/issues)
+👉 [Create an Issue](https://github.com/Felitendo/jellyfin-plugin-lyrics/issues)  
+☕ [Buy Me a Coffee](https://buymeacoffee.com/felitendo)
