@@ -16,5 +16,8 @@ changelog: |-
   ### New
   - Redesigned settings page.
   - New "Remove plain lyrics that hide synced lyrics" option, on by default. Turn it off if other apps use the lyrics files in your music folder.
+
+  <img src="https://raw.githubusercontent.com/Felitendo/jellyfin-plugin-lyrics/master/res/settings.png" width="450" alt="Settings page">
+
   ### Fixes
   - Synced lyrics now show up even when a plain .txt sits next to the song. Before, Jellyfin kept showing the plain lyrics and the task re-downloaded the synced ones every run. -> #59
