@@ -50,6 +50,17 @@
 7. Go to **Scheduled Tasks** and run **"Download and upgrade lyrics"**
 8. Go to **Libraries** and click on **Scan all Libraries**
 
+---
+
+## ⚙️ Settings
+
+All settings are on one page under **Dashboard → Plugins → My Plugins → Lyrics**:
+
+- **Matching** — how closely lyrics have to match your songs
+- **Synced lyrics** — upgrade plain lyrics to synced ones
+- **Scheduled task** — retries and limits for large libraries
+- **LRCLIB server** — use your own LRCLIB instance
+
 <p align="center">
   <img src="res/settings.png" width="450" alt="Lyrics plugin settings page">
 </p>
