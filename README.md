@@ -65,7 +65,7 @@ Looking for **v10.10.7 support**? -> https://github.com/Felitendo/jellyfin-plugi
 
 - **Missing lyrics for specific tracks?**  
   → Manually refresh metadata (see below)
-  → Toggle the `"Use strict search."` option in plugin settings
+  → Toggle the `Use strict search` option in plugin settings
   → If a song with very long trailing silence or a remastered version is being skipped, increase `Duration tolerance (seconds)`
 
 - **Wrong lyrics on instrumental / interlude tracks?**  

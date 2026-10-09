@@ -4,96 +4,331 @@
     <title>Lyrics</title>
 </head>
 <body>
-    <div id="lyricsConfigurationPage" data-role="page" class="page type-interior pluginConfigurationPage">
+    <div id="lyricsConfigurationPage" data-role="page" class="page type-interior pluginConfigurationPage lyricsConfigurationPage">
+        <style>
+            /* Colors stay translucent grey so the page fits every Jellyfin theme, light or dark. */
+            .lyricsConfigurationPage .lyrics-form {
+                max-width: 54em;
+                margin: 0 auto;
+                padding-bottom: 3em;
+            }
+
+            .lyricsConfigurationPage .lyrics-hero {
+                display: flex;
+                align-items: center;
+                gap: 1.25em;
+                margin: 1.5em 0 2em;
+            }
+
+            .lyricsConfigurationPage .lyrics-hero-icon {
+                flex: none;
+                width: 4.5em;
+                height: 4.5em;
+            }
+
+            .lyricsConfigurationPage .lyrics-hero h1 {
+                display: flex;
+                flex-wrap: wrap;
+                align-items: center;
+                gap: 0.5em;
+                margin: 0;
+                font-size: 2em;
+                font-weight: 600;
+            }
+
+            .lyricsConfigurationPage .lyrics-version {
+                padding: 0.2em 0.65em;
+                border-radius: 1em;
+                background: rgba(128, 128, 128, 0.18);
+                font-size: 0.4em;
+                font-weight: 500;
+                letter-spacing: 0.02em;
+            }
+
+            .lyricsConfigurationPage .lyrics-hero p {
+                margin: 0.35em 0 0.6em;
+                opacity: 0.75;
+                line-height: 1.45;
+            }
+
+            .lyricsConfigurationPage .lyrics-links {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 0.4em 1.25em;
+                font-size: 0.92em;
+            }
+
+            .lyricsConfigurationPage .lyrics-links a {
+                color: inherit;
+                opacity: 0.8;
+                text-decoration: none;
+                border-bottom: 1px solid rgba(128, 128, 128, 0.5);
+            }
+
+            .lyricsConfigurationPage .lyrics-links a:hover {
+                opacity: 1;
+            }
+
+            .lyricsConfigurationPage .lyrics-card {
+                margin-bottom: 1.5em;
+                padding: 1.4em 1.5em 0.5em;
+                border: 1px solid rgba(128, 128, 128, 0.22);
+                border-radius: 0.9em;
+                background: rgba(128, 128, 128, 0.06);
+            }
+
+            .lyricsConfigurationPage .lyrics-card-header {
+                display: flex;
+                align-items: flex-start;
+                gap: 0.9em;
+                margin-bottom: 1.4em;
+            }
+
+            .lyricsConfigurationPage .lyrics-card-icon {
+                flex: none;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                width: 2.5em;
+                height: 2.5em;
+                border-radius: 0.7em;
+                background: linear-gradient(135deg, rgba(170, 92, 195, 0.28), rgba(0, 164, 220, 0.28));
+            }
+
+            .lyricsConfigurationPage .lyrics-card-icon svg {
+                width: 1.35em;
+                height: 1.35em;
+                fill: currentColor;
+            }
+
+            .lyricsConfigurationPage .lyrics-card h2 {
+                margin: 0;
+                font-size: 1.2em;
+                font-weight: 600;
+            }
+
+            .lyricsConfigurationPage .lyrics-card-header p {
+                margin: 0.25em 0 0;
+                opacity: 0.7;
+                font-size: 0.92em;
+                line-height: 1.45;
+            }
+
+            /* Settings that only matter while the checkbox above them is on. */
+            .lyricsConfigurationPage .lyrics-sub {
+                margin: -0.6em 0 1.8em 0.85em;
+                padding: 0.4em 0 0 1.4em;
+                border-left: 2px solid rgba(128, 128, 128, 0.3);
+            }
+
+            .lyricsConfigurationPage .lyrics-sub .inputContainer:last-child,
+            .lyricsConfigurationPage .lyrics-sub .checkboxContainer:last-child {
+                margin-bottom: 0;
+            }
+
+            .lyricsConfigurationPage .lyrics-save {
+                margin-top: 0.5em;
+            }
+
+            @media (max-width: 40em) {
+                .lyricsConfigurationPage .lyrics-hero {
+                    margin-top: 1em;
+                }
+
+                .lyricsConfigurationPage .lyrics-hero-icon {
+                    width: 3.5em;
+                    height: 3.5em;
+                }
+
+                .lyricsConfigurationPage .lyrics-hero h1 {
+                    font-size: 1.6em;
+                }
+
+                .lyricsConfigurationPage .lyrics-card {
+                    padding: 1.1em 1em 0.3em;
+                }
+
+                .lyricsConfigurationPage .lyrics-card-icon {
+                    display: none;
+                }
+
+                .lyricsConfigurationPage .lyrics-sub {
+                    margin-left: 0.4em;
+                    padding-left: 1em;
+                }
+            }
+        </style>
         <div data-role="content">
             <div class="content-primary">
-                <form class="gotifyConfigurationForm">
-                    <div class="verticalSection verticalSection-extrabottompadding">
-                        <div class="sectionTitleContainer flex align-items-center">
-                            <h2 class="sectionTitle">Lyrics Settings:</h2>
-                        </div>
-                        <label class="checkboxContainer">
-                            <input is="emby-checkbox" type="checkbox" id="useStrictSearch" />
-                            <span>Use strict search.</span>
-                        </label>
-                        <label class="checkboxContainer" id="excludeArtistNameLabel">
-                            <input is="emby-checkbox" type="checkbox" id="excludeArtistName" />
-                            <span>Exclude artist name from the search parameters.</span>
-                        </label>
-                        <label class="checkboxContainer" id="excludeAlbumNameLabel">
-                            <input is="emby-checkbox" type="checkbox" id="excludeAlbumName" />
-                            <span>Exclude album name from the search parameters.</span>
-                        </label>
-                        <label class="checkboxContainer">
-                            <input is="emby-checkbox" type="checkbox" id="enableDurationFilter" />
-                            <span>Filter matches by song length (recommended)</span>
-                        </label>
-                        <div id="durationFilterSettings" style="margin-left: 2.2em;">
-                            <p style="margin: 0 0 1em 0; font-size: 0.95em; opacity: 0.8;">
-                                Skip lyrics whose song length is too different from your file. Turn this off to accept any match regardless of length.
-                            </p>
-                            <label>
-                                Duration tolerance (seconds)
-                                <input is="emby-input" type="number" id="durationToleranceSeconds" min="1" step="1" />
-                            </label>
-                            <p style="margin: 0 0 1em 0; font-size: 0.95em; opacity: 0.8;">
-                                How close the song length must be to a lyrics match for the match to count. If wrong lyrics show up on instrumental or interlude tracks, lower this value. If lyrics are missing for songs that should have them, raise it. Default: 15.
-                            </p>
-                        </div>
-                        <label class="checkboxContainer">
-                            <input is="emby-checkbox" type="checkbox" id="enableAdaptiveRetryBackoff" />
-                            <span>Skip repeated misses (recommended)</span>
-                        </label>
-                        <div id="adaptiveRetrySettings" style="margin-left: 2.2em;">
-                            <p style="margin: 0 0 1em 0; font-size: 0.95em; opacity: 0.8;">
-                                If a song has no lyrics today, the plugin waits longer before trying again.
-                            </p>
-                            <label>
-                                Retry after days (comma separated)
-                                <input is="emby-input" type="text" id="backoffScheduleDays" placeholder="1,3,7,30 (example)" />
-                            </label>
-                            <label>
-                                Forget old failed-song history after (days)
-                                <input is="emby-input" type="number" id="failureStateTtlDays" min="1" step="1" />
-                            </label>
-                        </div>
-                        <label class="checkboxContainer">
-                            <input is="emby-checkbox" type="checkbox" id="enableRunCap" />
-                            <span>Limit work per run (recommended for large libraries)</span>
-                        </label>
-                        <div id="runCapSettings" style="margin-left: 2.2em;">
-                            <p style="margin: 0 0 1em 0; font-size: 0.95em; opacity: 0.8;">
-                                Stops after this many songs per run, then continues next scheduled run.
-                            </p>
-                            <label>
-                                Max songs to check each run
-                                <input is="emby-input" type="number" id="maxTracksPerRun" min="100" step="1" />
-                            </label>
-                        </div>
-                        <div class="inputContainer">
-                            <label class="inputLabel inputLabelUnfocused" for="lrclibBaseUrl">LRCLIB server URL (optional, for advanced users)</label>
-                            <input is="emby-input" type="text" id="lrclibBaseUrl" placeholder="https://lrclib.net" />
-                            <p style="margin: 0.4em 0 0 0; font-size: 0.95em; opacity: 0.8;">
-                                Only change this if you run your own LRCLIB instance and want the plugin to query it instead.
-                            </p>
-                        </div>
-                        <label class="checkboxContainer">
-                            <input is="emby-checkbox" type="checkbox" id="disableRateLimit" />
-                            <span>Disable rate limiting</span>
-                        </label>
-                        <div class="fieldDescription checkboxFieldDescription" style="margin-left: 2.2em;">
-                            <p style="margin: 0 0 1em 0; font-size: 0.95em; opacity: 0.8;">
-                                Removes the delay between requests, which speeds up large libraries considerably. This
-                                only takes effect with your own LRCLIB server configured above &mdash; requests to the
-                                public lrclib.net stay rate limited either way.
-                            </p>
-                        </div>
-                        <br />
+                <form class="lyricsConfigurationForm lyrics-form">
+                    <div class="lyrics-hero">
+                        <svg class="lyrics-hero-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 11.5 512 512" aria-hidden="true">
+                            <defs>
+                                <linearGradient id="lyricsHeroGradient" gradientUnits="userSpaceOnUse" x1="110.25" y1="213.3" x2="496.14" y2="436.09"><stop offset="0" stop-color="#aa5cc3"/><stop offset=".25" stop-color="#916fdc"/><stop offset=".5" stop-color="#7282e8"/><stop offset=".75" stop-color="#4a94e7"/><stop offset="1" stop-color="#00a4dc"/></linearGradient>
+                                <linearGradient id="lyricsHeroNoteGradient" gradientUnits="userSpaceOnUse" x1="196" y1="180" x2="324" y2="400"><stop offset="0" stop-color="#aa5cc3"/><stop offset=".25" stop-color="#916fdc"/><stop offset=".5" stop-color="#7282e8"/><stop offset=".75" stop-color="#4a94e7"/><stop offset="1" stop-color="#00a4dc"/></linearGradient>
+                            </defs>
+                            <path d="M256,23.3c-61.6,0-259.8,359.4-229.6,420.1s429.3,60,459.2,0S317.6,23.3,256,23.3z M406.5,390.8c-19.6,39.3-281.1,39.8-300.9,0s110.1-275.3,150.4-275.3S426.1,351.4,406.5,390.8z" fill="url(#lyricsHeroGradient)"/>
+                            <path d="M252 317.4 L252 186 A12 12 0 0 1 276 186 C280 216 334 228 326 290 C325 299 311 300 312 290 C315 258 298 244 276 238 L276 357.2 A44 32 -20 1 1 238.1 330.5 Q252 331.4 252 317.4 Z" fill="url(#lyricsHeroNoteGradient)"/>
+                        </svg>
                         <div>
-                            <button is="emby-button" type="submit" data-theme="b" class="raised button-submit block">
-                                <span>Save</span>
-                            </button>
+                            <h1>Lyrics <span class="lyrics-version hide" id="lyricsVersion"></span></h1>
+                            <p>Synced lyrics from LRCLIB for your music library.</p>
+                            <div class="lyrics-links">
+                                <a is="emby-linkbutton" class="button-link" href="https://github.com/Felitendo/jellyfin-plugin-lyrics#readme" target="_blank" rel="noopener noreferrer">Documentation</a>
+                                <a is="emby-linkbutton" class="button-link" href="https://github.com/Felitendo/jellyfin-plugin-lyrics/issues" target="_blank" rel="noopener noreferrer">Report a bug</a>
+                            </div>
                         </div>
+                    </div>
+
+                    <div class="lyrics-card">
+                        <div class="lyrics-card-header">
+                            <div class="lyrics-card-icon">
+                                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15.5 14h-.79l-.28-.27A6.47 6.47 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+                            </div>
+                            <div>
+                                <h2>Matching</h2>
+                                <p>When lyrics count as a match.</p>
+                            </div>
+                        </div>
+
+                        <div class="checkboxContainer checkboxContainer-withDescription">
+                            <label class="emby-checkbox-label">
+                                <input is="emby-checkbox" type="checkbox" id="useStrictSearch" />
+                                <span>Use strict search</span>
+                            </label>
+                            <div class="fieldDescription checkboxFieldDescription">Title, artist, album and length must match exactly. Fewer results, fewer wrong ones.</div>
+                        </div>
+                        <div class="lyrics-sub" id="fuzzySearchSettings">
+                            <div class="checkboxContainer checkboxContainer-withDescription">
+                                <label class="emby-checkbox-label">
+                                    <input is="emby-checkbox" type="checkbox" id="excludeArtistName" />
+                                    <span>Leave the artist out of the search</span>
+                                </label>
+                                <div class="fieldDescription checkboxFieldDescription">Helps with differently spelled artists, but causes more wrong matches.</div>
+                            </div>
+                            <div class="checkboxContainer checkboxContainer-withDescription">
+                                <label class="emby-checkbox-label">
+                                    <input is="emby-checkbox" type="checkbox" id="excludeAlbumName" />
+                                    <span>Leave the album out of the search</span>
+                                </label>
+                                <div class="fieldDescription checkboxFieldDescription">Finds more lyrics. Recommended.</div>
+                            </div>
+                        </div>
+
+                        <div class="checkboxContainer checkboxContainer-withDescription">
+                            <label class="emby-checkbox-label">
+                                <input is="emby-checkbox" type="checkbox" id="enableDurationFilter" />
+                                <span>Filter matches by song length</span>
+                            </label>
+                            <div class="fieldDescription checkboxFieldDescription">Skips lyrics for songs of a different length, e.g. intros and interludes. Recommended.</div>
+                        </div>
+                        <div class="lyrics-sub" id="durationFilterSettings">
+                            <div class="inputContainer">
+                                <label class="inputLabel inputLabelUnfocused" for="durationToleranceSeconds">Duration tolerance (seconds)</label>
+                                <input is="emby-input" type="number" id="durationToleranceSeconds" min="1" step="1" />
+                                <div class="fieldDescription">Lower means fewer wrong matches, higher means fewer skipped songs. Default: 15.</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="lyrics-card">
+                        <div class="lyrics-card-header">
+                            <div class="lyrics-card-icon">
+                                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v10.55A4 4 0 1 0 14 17V7h4V3h-6zm-2 16c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z"/></svg>
+                            </div>
+                            <div>
+                                <h2>Synced lyrics</h2>
+                                <p>Always preferred. Plain lyrics get upgraded once synced ones exist.</p>
+                            </div>
+                        </div>
+
+                        <div class="checkboxContainer checkboxContainer-withDescription">
+                            <label class="emby-checkbox-label">
+                                <input is="emby-checkbox" type="checkbox" id="removePlainLyricsHidingSynced" />
+                                <span>Remove plain lyrics that hide synced lyrics</span>
+                            </label>
+                            <div class="fieldDescription checkboxFieldDescription">Deletes a plain lyrics file next to the song if it hides the synced lyrics. Turn off if other apps use these files.</div>
+                        </div>
+                    </div>
+
+                    <div class="lyrics-card">
+                        <div class="lyrics-card-header">
+                            <div class="lyrics-card-icon">
+                                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67V7z"/></svg>
+                            </div>
+                            <div>
+                                <h2>Scheduled task</h2>
+                                <p>Only applies to "Download and upgrade lyrics".</p>
+                            </div>
+                        </div>
+
+                        <div class="checkboxContainer checkboxContainer-withDescription">
+                            <label class="emby-checkbox-label">
+                                <input is="emby-checkbox" type="checkbox" id="enableAdaptiveRetryBackoff" />
+                                <span>Skip repeated misses</span>
+                            </label>
+                            <div class="fieldDescription checkboxFieldDescription">Retries songs without lyrics less and less often. Recommended.</div>
+                        </div>
+                        <div class="lyrics-sub" id="adaptiveRetrySettings">
+                            <div class="inputContainer">
+                                <label class="inputLabel inputLabelUnfocused" for="backoffScheduleDays">Retry after days</label>
+                                <input is="emby-input" type="text" id="backoffScheduleDays" placeholder="1,3,7,30" />
+                                <div class="fieldDescription">Comma separated. The last value repeats.</div>
+                            </div>
+                            <div class="inputContainer">
+                                <label class="inputLabel inputLabelUnfocused" for="failureStateTtlDays">Forget a song's misses after (days)</label>
+                                <input is="emby-input" type="number" id="failureStateTtlDays" min="1" step="1" />
+                                <div class="fieldDescription">After that, a song starts over at the first retry.</div>
+                            </div>
+                        </div>
+
+                        <div class="checkboxContainer checkboxContainer-withDescription">
+                            <label class="emby-checkbox-label">
+                                <input is="emby-checkbox" type="checkbox" id="enableRunCap" />
+                                <span>Limit work per run</span>
+                            </label>
+                            <div class="fieldDescription checkboxFieldDescription">Recommended for large libraries.</div>
+                        </div>
+                        <div class="lyrics-sub" id="runCapSettings">
+                            <div class="inputContainer">
+                                <label class="inputLabel inputLabelUnfocused" for="maxTracksPerRun">Max songs to check each run</label>
+                                <input is="emby-input" type="number" id="maxTracksPerRun" min="100" step="1" />
+                                <div class="fieldDescription">The next run continues where this one stopped. Default: 2000.</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="lyrics-card">
+                        <div class="lyrics-card-header">
+                            <div class="lyrics-card-icon">
+                                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 13H4c-.55 0-1 .45-1 1v6c0 .55.45 1 1 1h16c.55 0 1-.45 1-1v-6c0-.55-.45-1-1-1zM7 19c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zM20 3H4c-.55 0-1 .45-1 1v6c0 .55.45 1 1 1h16c.55 0 1-.45 1-1V4c0-.55-.45-1-1-1zM7 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z"/></svg>
+                            </div>
+                            <div>
+                                <h2>LRCLIB server</h2>
+                                <p>Only for self-hosted LRCLIB instances.</p>
+                            </div>
+                        </div>
+
+                        <div class="inputContainer">
+                            <label class="inputLabel inputLabelUnfocused" for="lrclibBaseUrl">Server URL</label>
+                            <input is="emby-input" type="text" id="lrclibBaseUrl" placeholder="https://lrclib.net" />
+                            <div class="fieldDescription">Leave empty for lrclib.net.</div>
+                        </div>
+                        <div class="lyrics-sub" id="rateLimitSettings">
+                            <div class="checkboxContainer checkboxContainer-withDescription">
+                                <label class="emby-checkbox-label">
+                                    <input is="emby-checkbox" type="checkbox" id="disableRateLimit" />
+                                    <span>Disable rate limiting</span>
+                                </label>
+                                <div class="fieldDescription checkboxFieldDescription">No delay between requests to your own server. lrclib.net always stays rate limited.</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="lyrics-save">
+                        <button is="emby-button" type="submit" class="raised button-submit block">
+                            <span>Save</span>
+                        </button>
                     </div>
                 </form>
             </div>
@@ -109,16 +344,11 @@
                     document.querySelector('#lrclibBaseUrl').value = config.LrclibBaseUrl || '';
                     document.querySelector('#disableRateLimit').checked = config.DisableRateLimit === true;
                     document.querySelector('#useStrictSearch').checked = config.UseStrictSearch;
-
-                    if (config.UseStrictSearch) {
-                        document.querySelector('#excludeArtistNameLabel').classList.add('hide');
-                        document.querySelector('#excludeAlbumNameLabel').classList.add('hide');
-                    }
-
                     document.querySelector('#excludeArtistName').checked = config.ExcludeArtistName;
                     document.querySelector('#excludeAlbumName').checked = config.ExcludeAlbumName;
                     document.querySelector('#enableDurationFilter').checked = config.EnableDurationFilter !== false;
                     document.querySelector('#durationToleranceSeconds').value = Math.max(parseInt(config.DurationToleranceSeconds, 10) || 15, 1);
+                    document.querySelector('#removePlainLyricsHidingSynced').checked = config.RemovePlainLyricsHidingSynced !== false;
 
                     document.querySelector('#enableAdaptiveRetryBackoff').checked = config.EnableAdaptiveRetryBackoff !== false;
                     document.querySelector('#enableRunCap').checked = config.EnableRunCap !== false;
@@ -130,11 +360,21 @@
                         : [1, 3, 7, 30];
                     document.querySelector('#backoffScheduleDays').value = backoffDays.join(',');
 
-                    LyricsPluginConfiguration.toggleStrictSearchVisibility();
-                    LyricsPluginConfiguration.toggleBackoffVisibility();
-                    LyricsPluginConfiguration.toggleRunCapVisibility();
-                    LyricsPluginConfiguration.toggleDurationFilterVisibility();
+                    LyricsPluginConfiguration.updateVisibility();
                     Dashboard.hideLoadingMsg();
+                });
+
+                ApiClient.getInstalledPlugins().then(function (plugins) {
+                    var plugin = plugins.find(function (p) {
+                        return (p.Id || '').replace(/-/g, '').toLowerCase() === LyricsPluginConfiguration.uniquePluginId.replace(/-/g, '');
+                    });
+                    if (plugin && plugin.Version) {
+                        var version = document.querySelector('#lyricsVersion');
+                        version.textContent = 'v' + plugin.Version.replace(/\.0$/, '');
+                        version.classList.remove('hide');
+                    }
+                }).catch(function () {
+                    // The version badge is decoration; the settings still work without it.
                 });
             },
 
@@ -151,6 +391,7 @@
                     config.EnableDurationFilter = document.querySelector('#enableDurationFilter').checked;
                     var durationToleranceValue = parseInt(document.querySelector('#durationToleranceSeconds').value || '15', 10);
                     config.DurationToleranceSeconds = Number.isFinite(durationToleranceValue) ? Math.max(durationToleranceValue, 1) : 15;
+                    config.RemovePlainLyricsHidingSynced = document.querySelector('#removePlainLyricsHidingSynced').checked;
                     config.EnableAdaptiveRetryBackoff = document.querySelector('#enableAdaptiveRetryBackoff').checked;
                     config.EnableRunCap = document.querySelector('#enableRunCap').checked;
 
@@ -172,42 +413,34 @@
                 });
             },
 
-            toggleStrictSearchVisibility: function () {
-                if (document.getElementById('useStrictSearch').checked) {
-                    document.getElementById('excludeArtistNameLabel').classList.add('hide');
-                    document.getElementById('excludeAlbumNameLabel').classList.add('hide');
+            // Mirrors LrclibRateLimiter.IsOfficialServer: anything that isn't a valid http(s) URL falls back to lrclib.net.
+            isOfficialServer: function (value) {
+                var url;
+                try {
+                    url = new URL((value || '').trim());
+                } catch (e) {
+                    return true;
                 }
-                else {
-                    document.getElementById('excludeArtistNameLabel').classList.remove('hide');
-                    document.getElementById('excludeAlbumNameLabel').classList.remove('hide');
+
+                if (url.protocol !== 'http:' && url.protocol !== 'https:') {
+                    return true;
                 }
+
+                var host = url.hostname.toLowerCase();
+                return host === 'lrclib.net' || host.endsWith('.lrclib.net');
             },
 
-            toggleBackoffVisibility: function () {
-                if (document.getElementById('enableAdaptiveRetryBackoff').checked) {
-                    document.getElementById('adaptiveRetrySettings').classList.remove('hide');
-                }
-                else {
-                    document.getElementById('adaptiveRetrySettings').classList.add('hide');
-                }
+            setVisible: function (id, visible) {
+                document.getElementById(id).classList.toggle('hide', !visible);
             },
 
-            toggleRunCapVisibility: function () {
-                if (document.getElementById('enableRunCap').checked) {
-                    document.getElementById('runCapSettings').classList.remove('hide');
-                }
-                else {
-                    document.getElementById('runCapSettings').classList.add('hide');
-                }
-            },
-
-            toggleDurationFilterVisibility: function () {
-                if (document.getElementById('enableDurationFilter').checked) {
-                    document.getElementById('durationFilterSettings').classList.remove('hide');
-                }
-                else {
-                    document.getElementById('durationFilterSettings').classList.add('hide');
-                }
+            updateVisibility: function () {
+                var page = LyricsPluginConfiguration;
+                page.setVisible('fuzzySearchSettings', !document.getElementById('useStrictSearch').checked);
+                page.setVisible('durationFilterSettings', document.getElementById('enableDurationFilter').checked);
+                page.setVisible('adaptiveRetrySettings', document.getElementById('enableAdaptiveRetryBackoff').checked);
+                page.setVisible('runCapSettings', document.getElementById('enableRunCap').checked);
+                page.setVisible('rateLimitSettings', !page.isOfficialServer(document.getElementById('lrclibBaseUrl').value));
             }
         };
 
@@ -220,21 +453,11 @@
             LyricsPluginConfiguration.saveConfiguration();
         });
 
-        document.getElementById('useStrictSearch').addEventListener('change', function () {
-            LyricsPluginConfiguration.toggleStrictSearchVisibility();
+        ['useStrictSearch', 'enableDurationFilter', 'enableAdaptiveRetryBackoff', 'enableRunCap'].forEach(function (id) {
+            document.getElementById(id).addEventListener('change', LyricsPluginConfiguration.updateVisibility);
         });
 
-        document.getElementById('enableAdaptiveRetryBackoff').addEventListener('change', function () {
-            LyricsPluginConfiguration.toggleBackoffVisibility();
-        });
-
-        document.getElementById('enableRunCap').addEventListener('change', function () {
-            LyricsPluginConfiguration.toggleRunCapVisibility();
-        });
-
-        document.getElementById('enableDurationFilter').addEventListener('change', function () {
-            LyricsPluginConfiguration.toggleDurationFilterVisibility();
-        });
+        document.getElementById('lrclibBaseUrl').addEventListener('input', LyricsPluginConfiguration.updateVisibility);
         </script>
     </div>
 </body>
