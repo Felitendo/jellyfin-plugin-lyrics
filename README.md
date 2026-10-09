@@ -88,46 +88,6 @@ All settings are on one page under **Dashboard -> Plugins -> My Plugins -> Lyric
 - **Jellyfin shows plain lyrics although synced ones were downloaded?**  
   → Turn on `Remove plain lyrics that hide synced lyrics` (default), or delete the plain `.txt` next to the song.
 
-### How match filtering works
-
-- **Filter matches by song length** — default on  
-  When on, the plugin compares your local song's length to the length of the lyrics it finds online and skips lyrics whose length is too different. This stops short tracks like intros and interludes from getting lyrics that belong to a completely different song with a similar title.  
-  Turn this off if you want the plugin to accept any match regardless of length (not recommended — you'll get more wrong matches).
-
-- **Duration tolerance (seconds)** — default `15`  
-  Only used when the length filter is on. How close the song length has to be to a lyrics match for the match to count. If they differ by more than this many seconds, the lyrics are skipped.
-  - **Lower** (e.g. `5`) — stricter. Better at catching wrong matches, but might skip correct lyrics if your file has long silence at the end or is a different version (remaster, vinyl rip).
-  - **Higher** (e.g. `30`) — more forgiving. Accepts more correct matches, but lets more wrong ones through.
-  - The artist always has to match too — this setting only controls the length check.
-
-### How synced lyrics work
-
-Synced lyrics are always preferred. The **"Download and upgrade lyrics"** task replaces plain lyrics with synced ones once LRCLIB has them.
-
-- **Remove plain lyrics that hide synced lyrics** — default on  
-  Jellyfin shows only one lyrics file per song and prefers the one in your music folder. With this on, a plain `.txt` there gets deleted when it would hide the synced lyrics.  
-  Turn it off if other apps use these files.
-
-### How the speed settings work
-
-- **Skip repeated misses**  
-  When a song has no lyrics, the plugin does **not** retry it every day.  
-  With the default `1,3,7,30` schedule it tries:
-  - after 1 day
-  - then after 3 days
-  - then after 7 days
-  - then every 30 days  
-  This removes most repeated API calls for songs that likely have no lyrics online.
-
-- **Limit work per run**  
-  Caps how many songs are checked in one scheduled run.  
-  Example: with `Max songs = 1000`, the task stops after ~1000 songs and continues next day, instead of running for many hours.
-
-- **Good starting values**
-  - Small library: `Max songs = 2000` (default)
-  - Large library / slow server: `Max songs = 500-1000`
----
-
 ## 🔄 Manual Refresh
 
 If lyrics aren't appearing for specific albums:
