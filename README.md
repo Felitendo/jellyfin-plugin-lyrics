@@ -54,7 +54,7 @@
 
 ## ⚙️ Settings
 
-All settings are on one page under **Dashboard -> Plugins -> My Plugins -> Lyrics**:
+All settings are on one page under **Dashboard → Plugins → My Plugins → Lyrics**:
 
 <p align="center">
   <img src="res/settings.png" width="450" alt="Lyrics plugin settings page">
