@@ -20,8 +20,6 @@
   <a href="https://ko-fi.com/felitendo"><img src="https://storage.ko-fi.com/cdn/kofi5.png?v=6" alt="Buy me a coffee on Ko-fi" height="48"></a>
 </p>
 
-Looking for **v10.10.7 support**? -> https://github.com/Felitendo/jellyfin-plugin-lyrics-v10.10.7
-
 ---
 
 ## ✨ Features
