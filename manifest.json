@@ -8,6 +8,22 @@
         "category": "Metadata",
         "versions": [
             {
+                "version": "1.7.1.0",
+                "changelog": "## v1.7.1.0\n### New\n- Redesigned settings page.\n- New \"Remove plain lyrics that hide synced lyrics\" option, on by default. Turn it off if other apps use the lyrics files in your music folder.\n### Fixes\n- Synced lyrics now show up even when a plain .txt sits next to the song. Before, Jellyfin kept showing the plain lyrics and the task re-downloaded the synced ones every run. -> #59",
+                "targetAbi": "12.0.0.0",
+                "sourceUrl": "https://github.com/Felitendo/jellyfin-plugin-lyrics/releases/download/v1.7.1/lyrics_1.7.1.0_jf12.zip",
+                "checksum": "59a5d74b29cc5bdf0dd35613abf55b17",
+                "timestamp": "2026-10-09T14:30:53Z"
+            },
+            {
+                "version": "1.7.1.0",
+                "changelog": "## v1.7.1.0\n### New\n- Redesigned settings page.\n- New \"Remove plain lyrics that hide synced lyrics\" option, on by default. Turn it off if other apps use the lyrics files in your music folder.\n### Fixes\n- Synced lyrics now show up even when a plain .txt sits next to the song. Before, Jellyfin kept showing the plain lyrics and the task re-downloaded the synced ones every run. -> #59",
+                "targetAbi": "10.11.0.0",
+                "sourceUrl": "https://github.com/Felitendo/jellyfin-plugin-lyrics/releases/download/v1.7.1/lyrics_1.7.1.0_jf10.11.zip",
+                "checksum": "5e4bda43cffddde25a51ab29c5051c17",
+                "timestamp": "2026-10-09T14:30:53Z"
+            },
+            {
                 "version": "1.7.0.0",
                 "changelog": "## v1.7.0.0\n### New\n- Jellyfin 12 support. Every release now ships two builds, one for Jellyfin 12 and one for Jellyfin 10.11, and Jellyfin installs the right one for your server automatically.\n- Jellyfin 10.11.0 and newer are supported again. The previous release required at least 10.11.6.\n- New \"Disable rate limiting\" option for self-hosted LRCLIB servers. It removes the delay between requests, which speeds up large libraries. Requests to the public lrclib.net stay rate limited.\n### Fixes\n- Tracks that only have an album artist tag (compilations, classical music, many rips) now get lyrics. Strict search used to give up without an artist tag, and fuzzy search ignored the album artist entirely.\n- Fuzzy search now tries every artist tagged on a track instead of only the first one.\n- A system clock jump (NTP correction, VM resume) can no longer stall lyric requests.",
                 "targetAbi": "12.0.0.0",
