@@ -50,6 +50,10 @@
 7. Go to **Scheduled Tasks** and run **"Download and upgrade lyrics"**
 8. Go to **Libraries** and click on **Scan all Libraries**
 
+<p align="center">
+  <img src="res/settings.png" width="450" alt="Lyrics plugin settings page">
+</p>
+
 ---
 
 ## 🛠️ Troubleshooting
