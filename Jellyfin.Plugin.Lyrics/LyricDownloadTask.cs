@@ -53,6 +53,7 @@ public class LyricDownloadTask : IScheduledTask
 
     private readonly ILibraryManager _libraryManager;
     private readonly ILyricManager _lyricManager;
+    private readonly ILibraryMonitor _libraryMonitor;
     private readonly RetryStateStore _retryStateStore;
     private readonly ILogger<LyricDownloadTask> _logger;
     private readonly ILocalizationManager _localizationManager;
@@ -62,6 +63,7 @@ public class LyricDownloadTask : IScheduledTask
     /// </summary>
     /// <param name="libraryManager">Instance of the <see cref="ILibraryManager"/> interface.</param>
     /// <param name="lyricManager">Instance of the <see cref="ILyricManager"/> interface.</param>
+    /// <param name="libraryMonitor">Instance of the <see cref="ILibraryMonitor"/> interface.</param>
     /// <param name="applicationPaths">Instance of the <see cref="IApplicationPaths"/> interface.</param>
     /// <param name="logger">Instance of the <see cref="ILogger{DownloaderScheduledTask}"/> interface.</param>
     /// <param name="loggerFactory">Instance of the <see cref="ILoggerFactory"/> interface.</param>
@@ -69,6 +71,7 @@ public class LyricDownloadTask : IScheduledTask
     public LyricDownloadTask(
         ILibraryManager libraryManager,
         ILyricManager lyricManager,
+        ILibraryMonitor libraryMonitor,
         IApplicationPaths applicationPaths,
         ILogger<LyricDownloadTask> logger,
         ILoggerFactory loggerFactory,
@@ -76,6 +79,7 @@ public class LyricDownloadTask : IScheduledTask
     {
         _libraryManager = libraryManager;
         _lyricManager = lyricManager;
+        _libraryMonitor = libraryMonitor;
         _retryStateStore = new RetryStateStore(applicationPaths, loggerFactory.CreateLogger<RetryStateStore>());
         _logger = logger;
         _localizationManager = localizationManager;
@@ -138,6 +142,8 @@ public class LyricDownloadTask : IScheduledTask
         var alreadySyncedSkippedCount = 0;
         var dbDesyncSkippedCount = 0;
         var plainNoSyncedFoundCount = 0;
+        var hiddenPlainRemovedCount = 0;
+        var syncedHiddenCount = 0;
         var missingNoLyricsFoundCount = 0;
         var backoffSkippedCount = 0;
         var errorsCount = 0;
@@ -208,8 +214,8 @@ public class LyricDownloadTask : IScheduledTask
 
                 // Check the filesystem directly for existing lyric files to avoid re-downloading when the DB hasn't registered them yet.
                 // Lyrics can sit next to the media file or, when "Save lyrics into media folders" is off, in the item's internal metadata folder.
-                var lyricFileOnDisk = FindLyricFileOnDisk(audioItem);
-                var lyricInFileFound = lyricFileOnDisk is not null;
+                var lyricFilesOnDisk = GetLyricFilesOnDisk(audioItem);
+                var lyricInFileFound = lyricFilesOnDisk.Count > 0;
 
                 try
                 {
@@ -245,31 +251,59 @@ public class LyricDownloadTask : IScheduledTask
                         alreadySyncedSkippedCount++;
                         stateMutations += ClearRetryState(retryState, itemKey);
                     }
-                    else if (lyricFileOnDisk is not null && IsSyncedLyricFile(lyricFileOnDisk))
-                    {
-                        // DB still reports plain, but a synced .lrc already sits on disk (core doesn't refresh the DB
-                        // after a download). Nothing to upgrade; re-downloading would loop until the next library scan.
-                        dbDesyncSkippedCount++;
-                        stateMutations += ClearRetryState(retryState, itemKey);
-                    }
                     else
                     {
-                        _logger.LogDebug("Checking upgrade to synced lyrics for {Path}", audioItem.Path);
-                        var lyricResults = await _lyricManager.SearchLyricsAsync(audioItem, true, cancellationToken).ConfigureAwait(false);
-                        var syncedCandidate = SelectBestSyncedCandidate(lyricResults);
-                        if (syncedCandidate is not null)
+                        // Jellyfin only shows the first file in lyricFilesOnDisk, so synced lyrics further down stay hidden.
+                        var syncedFileIndex = lyricFilesOnDisk.FindIndex(IsSyncedLyricFile);
+                        if (syncedFileIndex == 0)
                         {
-                            _logger.LogDebug("Upgrading to synced lyrics for {Path}", audioItem.Path);
-                            await _lyricManager.DownloadLyricsAsync(audioItem, syncedCandidate.Id, cancellationToken).ConfigureAwait(false);
-                            upgradedToSyncedCount++;
+                            // DB still reports plain, but a synced .lrc already sits on disk (core doesn't refresh the DB
+                            // after a download). Nothing to upgrade; re-downloading would loop until the next library scan.
+                            dbDesyncSkippedCount++;
                             stateMutations += ClearRetryState(retryState, itemKey);
+                        }
+                        else if (syncedFileIndex < 0)
+                        {
+                            _logger.LogDebug("Checking upgrade to synced lyrics for {Path}", audioItem.Path);
+                            var lyricResults = await _lyricManager.SearchLyricsAsync(audioItem, true, cancellationToken).ConfigureAwait(false);
+                            var syncedCandidate = SelectBestSyncedCandidate(lyricResults);
+                            if (syncedCandidate is not null)
+                            {
+                                _logger.LogDebug("Upgrading to synced lyrics for {Path}", audioItem.Path);
+                                await _lyricManager.DownloadLyricsAsync(audioItem, syncedCandidate.Id, cancellationToken).ConfigureAwait(false);
+                                upgradedToSyncedCount++;
+                                stateMutations += ClearRetryState(retryState, itemKey);
+
+                                // The synced file lands in the metadata folder when "Save lyrics into media folders" is
+                                // off, where a plain file next to the song still outranks it.
+                                lyricFilesOnDisk = GetLyricFilesOnDisk(audioItem);
+                                syncedFileIndex = lyricFilesOnDisk.FindIndex(IsSyncedLyricFile);
+                            }
+                            else
+                            {
+                                plainNoSyncedFoundCount++;
+                                if (configuration.EnableAdaptiveRetryBackoff)
+                                {
+                                    stateMutations += UpdateNoResultEntry(retryState, itemKey, trackSignature, trackNowUtc, backoffScheduleDays);
+                                }
+                            }
                         }
                         else
                         {
-                            plainNoSyncedFoundCount++;
-                            if (configuration.EnableAdaptiveRetryBackoff)
+                            // Synced lyrics are already on disk, but a plain file outranks them. Downloading again can't
+                            // change what Jellyfin shows; only removing the plain file can.
+                            stateMutations += ClearRetryState(retryState, itemKey);
+                        }
+
+                        if (syncedFileIndex > 0)
+                        {
+                            if (await TryRemoveHidingPlainLyricsAsync(audioItem, lyricFilesOnDisk, syncedFileIndex, configuration, cancellationToken).ConfigureAwait(false))
                             {
-                                stateMutations += UpdateNoResultEntry(retryState, itemKey, trackSignature, trackNowUtc, backoffScheduleDays);
+                                hiddenPlainRemovedCount++;
+                            }
+                            else
+                            {
+                                syncedHiddenCount++;
                             }
                         }
                     }
@@ -306,7 +340,7 @@ public class LyricDownloadTask : IScheduledTask
         }
 
         _logger.LogInformation(
-            "Lyrics task complete in {Elapsed}. Processed tracks: {ProcessedTrackCount}, visited items: {VisitedItemCount}/{TotalCount}, cap reached: {CapReached}, missing downloaded: {MissingDownloadedCount}, upgraded to synced: {UpgradedToSyncedCount}, already synced skipped: {AlreadySyncedSkippedCount}, db-desync skipped: {DbDesyncSkippedCount}, missing with no lyrics found: {MissingNoLyricsFoundCount}, plain with no synced found: {PlainNoSyncedFoundCount}, backoff skipped: {BackoffSkippedCount}, pruned retry-state entries: {PrunedEntriesCount}, errors: {ErrorsCount}",
+            "Lyrics task complete in {Elapsed}. Processed tracks: {ProcessedTrackCount}, visited items: {VisitedItemCount}/{TotalCount}, cap reached: {CapReached}, missing downloaded: {MissingDownloadedCount}, upgraded to synced: {UpgradedToSyncedCount}, already synced skipped: {AlreadySyncedSkippedCount}, db-desync skipped: {DbDesyncSkippedCount}, missing with no lyrics found: {MissingNoLyricsFoundCount}, plain with no synced found: {PlainNoSyncedFoundCount}, hidden plain lyrics removed: {HiddenPlainRemovedCount}, synced hidden by plain lyrics: {SyncedHiddenCount}, backoff skipped: {BackoffSkippedCount}, pruned retry-state entries: {PrunedEntriesCount}, errors: {ErrorsCount}",
             stopwatch.Elapsed,
             processedTrackCount,
             visitedItemCount,
@@ -318,9 +352,24 @@ public class LyricDownloadTask : IScheduledTask
             dbDesyncSkippedCount,
             missingNoLyricsFoundCount,
             plainNoSyncedFoundCount,
+            hiddenPlainRemovedCount,
+            syncedHiddenCount,
             backoffSkippedCount,
             prunedEntriesCount,
             errorsCount);
+
+        if (syncedHiddenCount > 0 && !configuration.RemovePlainLyricsHidingSynced)
+        {
+            _logger.LogWarning(
+                "{Count} songs have synced lyrics that Jellyfin can't show because a plain lyrics file next to the song takes priority. Turn on \"Remove plain lyrics that hide synced lyrics\" in the plugin settings, or delete those files yourself (enable debug logging to list them).",
+                syncedHiddenCount);
+        }
+        else if (syncedHiddenCount > 0)
+        {
+            _logger.LogWarning(
+                "{Count} songs have synced lyrics that Jellyfin can't show because the plain lyrics file next to the song could not be removed (see the warnings above, e.g. a read-only music folder).",
+                syncedHiddenCount);
+        }
 
         progress.Report(100);
     }
@@ -338,48 +387,45 @@ public class LyricDownloadTask : IScheduledTask
         ];
     }
 
+    // Core's LRC parser never sets Metadata.IsSynced for lyrics read from disk, so the line timestamps are what tell.
     private static bool HasSyncedLyrics(LyricDto existingLyrics)
     {
-        return existingLyrics.Metadata?.IsSynced == true;
+        return existingLyrics.Metadata?.IsSynced == true
+            || existingLyrics.Lyrics.Any(static line => line.Start.HasValue);
     }
 
-    // Returns the path of an existing lyric sidecar (preferring synced .lrc over plain .txt), or null when none exists.
-    private static string? FindLyricFileOnDisk(Audio audioItem)
+    // Returns the existing lyric sidecars in the order Jellyfin ranks them: the media folder before the internal metadata
+    // folder, and .lrc before .txt within a folder (it sorts each folder's files). Jellyfin only shows the first one.
+    private static List<string> GetLyricFilesOnDisk(Audio audioItem)
     {
+        var files = new List<string>();
         if (string.IsNullOrEmpty(audioItem.Path))
         {
-            return null;
+            return files;
         }
 
         // Next to the media file (library option "Save lyrics into media folders" enabled).
-        var lrcNextTo = Path.ChangeExtension(audioItem.Path, ".lrc");
-        if (File.Exists(lrcNextTo))
-        {
-            return lrcNextTo;
-        }
-
-        var txtNextTo = Path.ChangeExtension(audioItem.Path, ".txt");
-        if (File.Exists(txtNextTo))
-        {
-            return txtNextTo;
-        }
+        AddIfExists(files, Path.ChangeExtension(audioItem.Path, ".lrc"));
+        AddIfExists(files, Path.ChangeExtension(audioItem.Path, ".txt"));
 
         // Internal metadata folder (library option disabled): {InternalMetadataPath}/{fileNameWithoutExt}.{format}
         var metadataPath = audioItem.GetInternalMetadataPath();
-        if (string.IsNullOrEmpty(metadataPath))
+        if (!string.IsNullOrEmpty(metadataPath))
         {
-            return null;
+            var baseName = Path.GetFileNameWithoutExtension(audioItem.Path);
+            AddIfExists(files, Path.Combine(metadataPath, baseName + ".lrc"));
+            AddIfExists(files, Path.Combine(metadataPath, baseName + ".txt"));
         }
 
-        var baseName = Path.GetFileNameWithoutExtension(audioItem.Path);
-        var lrcMeta = Path.Combine(metadataPath, baseName + ".lrc");
-        if (File.Exists(lrcMeta))
-        {
-            return lrcMeta;
-        }
+        return files;
 
-        var txtMeta = Path.Combine(metadataPath, baseName + ".txt");
-        return File.Exists(txtMeta) ? txtMeta : null;
+        static void AddIfExists(List<string> files, string path)
+        {
+            if (File.Exists(path))
+            {
+                files.Add(path);
+            }
+        }
     }
 
     // Treats a lyric file as synced when any line carries an LRC time tag. Content-based so it works regardless of
@@ -404,6 +450,53 @@ public class LyricDownloadTask : IScheduledTask
         }
 
         return false;
+    }
+
+    // Deletes the plain lyric files ranked ahead of the synced one at syncedFileIndex, so Jellyfin shows the synced lyrics.
+    // Mirrors ILyricManager.DeleteLyricsAsync: keep the library monitor quiet during the delete, then refresh the item so
+    // its lyric stream stops pointing at a file that no longer exists. Returns false when the setting is off or a delete failed.
+    private async Task<bool> TryRemoveHidingPlainLyricsAsync(
+        Audio audioItem,
+        List<string> lyricFilesOnDisk,
+        int syncedFileIndex,
+        PluginConfiguration configuration,
+        CancellationToken cancellationToken)
+    {
+        if (!configuration.RemovePlainLyricsHidingSynced)
+        {
+            _logger.LogDebug("Synced lyrics for {Path} are hidden by the plain lyrics file {PlainPath}", audioItem.Path, lyricFilesOnDisk[0]);
+            return false;
+        }
+
+        var removedAll = true;
+        var removedAny = false;
+        foreach (var plainPath in lyricFilesOnDisk.Take(syncedFileIndex))
+        {
+            _libraryMonitor.ReportFileSystemChangeBeginning(plainPath);
+            try
+            {
+                File.Delete(plainPath);
+                removedAny = true;
+                _logger.LogInformation("Removed plain lyrics {PlainPath} so the synced lyrics for {Path} show", plainPath, audioItem.Path);
+            }
+            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+            {
+                // No stack trace: a read-only music folder would otherwise flood the log with the same one on every run.
+                removedAll = false;
+                _logger.LogWarning("Could not remove plain lyrics {PlainPath} that hide the synced lyrics for {Path}: {Message}", plainPath, audioItem.Path, ex.Message);
+            }
+            finally
+            {
+                _libraryMonitor.ReportFileSystemChangeComplete(plainPath, false);
+            }
+        }
+
+        if (removedAny)
+        {
+            await audioItem.RefreshMetadata(cancellationToken).ConfigureAwait(false);
+        }
+
+        return removedAll;
     }
 
     private static PluginConfiguration GetSanitizedConfiguration()

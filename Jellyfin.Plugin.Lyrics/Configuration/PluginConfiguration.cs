@@ -62,6 +62,13 @@ public class PluginConfiguration : BasePluginConfiguration
     public int DurationToleranceSeconds { get; set; } = 15;
 
     /// <summary>
+    /// Gets or sets a value indicating whether the lyrics task deletes plain lyric files that keep Jellyfin from
+    /// showing synced lyrics. Jellyfin only uses the first lyric file it finds and checks the media folder before its
+    /// internal metadata folder, so a plain .txt next to the song hides a synced .lrc saved to the metadata folder.
+    /// </summary>
+    public bool RemovePlainLyricsHidingSynced { get; set; } = true;
+
+    /// <summary>
     /// Gets or sets the base URL for the LRCLIB API.
     /// Defaults to the public instance. Set to an absolute http(s) URL to use a self-hosted instance.
     /// A trailing path is preserved (e.g. https://example.com/lrclib), so reverse-proxy subpaths work.

@@ -77,6 +77,9 @@ Looking for **v10.10.7 support**? -> https://github.com/Felitendo/jellyfin-plugi
   → Turn on `Limit work per run` and reduce `Max songs to check each run`
   → Keep `Retry after days` on `1,3,7,30` unless you want faster/slower retries
 
+- **Jellyfin shows plain lyrics although synced ones were downloaded?**  
+  → Turn on `Remove plain lyrics that hide synced lyrics` (default), or delete the plain `.txt` next to the song.
+
 ### How match filtering works
 
 - **Filter matches by song length** — default on  
@@ -88,6 +91,14 @@ Looking for **v10.10.7 support**? -> https://github.com/Felitendo/jellyfin-plugi
   - **Lower** (e.g. `5`) — stricter. Better at catching wrong matches, but might skip correct lyrics if your file has long silence at the end or is a different version (remaster, vinyl rip).
   - **Higher** (e.g. `30`) — more forgiving. Accepts more correct matches, but lets more wrong ones through.
   - The artist always has to match too — this setting only controls the length check.
+
+### How synced lyrics work
+
+Synced lyrics are always preferred. The **"Download and upgrade lyrics"** task replaces plain lyrics with synced ones once LRCLIB has them.
+
+- **Remove plain lyrics that hide synced lyrics** — default on  
+  Jellyfin shows only one lyrics file per song and prefers the one in your music folder. With this on, a plain `.txt` there gets deleted when it would hide the synced lyrics.  
+  Turn it off if other apps use these files.
 
 ### How the speed settings work
 
