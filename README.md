@@ -37,7 +37,7 @@
 
 1. Make sure your Jellyfin server is on **version 10.11.0 or higher** (Jellyfin 12 is supported too)
 2. If jellyfin's **"LrcLib"** plugin (`jellyfin-plugin-lrclib`) is installed, uninstall it first to avoid conflicts:
-   - Go to **Dashboard → Plugins → My Plugins**
+   - Go to **Dashboard -> Plugins -> My Plugins**
    - Find **"LrcLib"**, click it, then click **Uninstall** and confirm
    - Restart Jellyfin
 3. Add the plugin repository URL to Jellyfin:
@@ -54,7 +54,7 @@
 
 ## ⚙️ Settings
 
-All settings are on one page under **Dashboard → Plugins → My Plugins → Lyrics**:
+All settings are on one page under **Dashboard -> Plugins -> My Plugins -> Lyrics**:
 
 <p align="center">
   <img src="res/settings.png" width="450" alt="Lyrics plugin settings page">
@@ -65,28 +65,28 @@ All settings are on one page under **Dashboard → Plugins → My Plugins → Ly
 ## 🛠️ Troubleshooting
 
 - **Plugin not appearing?**  
-  → Double check if your Jellyfin version is **10.11.0 or higher**
+  -> Double check if your Jellyfin version is **10.11.0 or higher**
 
 - **Lyrics not showing?**  
-  → Try to search for songs manually (right click on a song -> edit song text -> click on the search icon)
-  → Try **refreshing metadata**
+  -> Try to search for songs manually (right click on a song -> edit song text -> click on the search icon)
+  -> Try **refreshing metadata**
 
 - **Missing lyrics for specific tracks?**  
-  → Manually refresh metadata (see below)
-  → Toggle the `Use strict search` option in plugin settings
-  → If a song with very long trailing silence or a remastered version is being skipped, increase `Duration tolerance (seconds)`
+  -> Manually refresh metadata (see below)
+  -> Toggle the `Use strict search` option in plugin settings
+  -> If a song with very long trailing silence or a remastered version is being skipped, increase `Duration tolerance (seconds)`
 
 - **Wrong lyrics on instrumental / interlude tracks?**  
-  → The plugin filters matches by artist and by duration. If you still see wrong matches, **lower** `Duration tolerance (seconds)` (e.g. `5`) so only very close-duration matches are accepted.
-  → If legitimate songs are being skipped instead, **raise** the value (e.g. `30`).
+  -> The plugin filters matches by artist and by duration. If you still see wrong matches, **lower** `Duration tolerance (seconds)` (e.g. `5`) so only very close-duration matches are accepted.
+  -> If legitimate songs are being skipped instead, **raise** the value (e.g. `30`).
 
 - **Scheduled task takes too long?**  
-  → Turn on `Skip repeated misses` (default on)
-  → Turn on `Limit work per run` and reduce `Max songs to check each run`
-  → Keep `Retry after days` on `1,3,7,30` unless you want faster/slower retries
+  -> Turn on `Skip repeated misses` (default on)
+  -> Turn on `Limit work per run` and reduce `Max songs to check each run`
+  -> Keep `Retry after days` on `1,3,7,30` unless you want faster/slower retries
 
 - **Jellyfin shows plain lyrics although synced ones were downloaded?**  
-  → Turn on `Remove plain lyrics that hide synced lyrics` (default), or delete the plain `.txt` next to the song.
+  -> Turn on `Remove plain lyrics that hide synced lyrics` (default), or delete the plain `.txt` next to the song.
 
 ## 🔄 Manual Refresh
 
