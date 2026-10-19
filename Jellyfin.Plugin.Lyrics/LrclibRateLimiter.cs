@@ -10,13 +10,14 @@ using Microsoft.Extensions.Logging;
 namespace Jellyfin.Plugin.Lyrics;
 
 /// <summary>
-/// Process-wide rate-limit gate for lrclib.net requests. Enforces a minimum 200 ms gap between
-/// outbound calls and honors <see cref="HttpStatusCode.TooManyRequests"/> together with the
-/// Retry-After header so a transient spike doesn't get logged as a generic per-track error.
+/// Process-wide rate-limit gate for lrclib.net requests. Enforces a minimum gap between outbound
+/// calls and honors <see cref="HttpStatusCode.TooManyRequests"/> and
+/// <see cref="HttpStatusCode.ServiceUnavailable"/> together with the Retry-After header so a
+/// transient spike doesn't get logged as a generic per-track error.
 /// </summary>
 internal static class LrclibRateLimiter
 {
-    private const int Max429Retries = 1;
+    private const int MaxThrottleRetries = 1;
     private const string OfficialHost = "lrclib.net";
     private const string OfficialHostSuffix = "." + OfficialHost;
 
@@ -56,8 +57,8 @@ internal static class LrclibRateLimiter
 
     /// <summary>
     /// Sends a request to lrclib.net, waiting if necessary to respect the inter-request gap and
-    /// any prior Retry-After backoff. On a 429 response, parses Retry-After, bumps the watermark,
-    /// and retries once before returning to the caller.
+    /// any prior Retry-After backoff. On a 429 or 503 response, parses Retry-After, bumps the
+    /// watermark, and retries once before returning to the caller.
     /// </summary>
     /// <param name="client">HTTP client to send the request on.</param>
     /// <param name="requestFactory">Factory that builds a fresh <see cref="HttpRequestMessage"/> per attempt; needed because messages can't be re-sent.</param>
@@ -90,18 +91,48 @@ internal static class LrclibRateLimiter
                 .SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken)
                 .ConfigureAwait(false);
 
-            if (response.StatusCode != HttpStatusCode.TooManyRequests || attempt >= Max429Retries)
+            if (!IsThrottleResponse(response.StatusCode))
             {
                 return response;
             }
 
             var retryAfter = ResolveRetryAfter(response.Headers.RetryAfter);
-            logger.LogWarning("LRCLIB returned 429, backing off for {Delay}.", retryAfter);
-            response.Dispose();
 
-            await BumpWatermarkAsync(retryAfter, cancellationToken).ConfigureAwait(false);
+            // Apply the delay before the final return as well. Returning the last 429/503 without
+            // moving the watermark lets the next track fire after only the normal gap, which
+            // ignores the server's Retry-After instruction entirely.
+            try
+            {
+                await BumpWatermarkAsync(retryAfter, cancellationToken).ConfigureAwait(false);
+            }
+            catch
+            {
+                // Cancellation while waiting for the gate leaves the caller without a response,
+                // so release this one here; successful calls keep caller ownership.
+                response.Dispose();
+                throw;
+            }
+
+            if (attempt >= MaxThrottleRetries)
+            {
+                logger.LogWarning(
+                    "LRCLIB returned {StatusCode} after {Attempts} attempt(s); next request in at least {Delay}.",
+                    (int)response.StatusCode,
+                    attempt + 1,
+                    retryAfter);
+                return response;
+            }
+
+            logger.LogWarning(
+                "LRCLIB returned {StatusCode}, backing off for {Delay} before retrying.",
+                (int)response.StatusCode,
+                retryAfter);
+            response.Dispose();
         }
     }
+
+    private static bool IsThrottleResponse(HttpStatusCode statusCode)
+        => statusCode is HttpStatusCode.TooManyRequests or HttpStatusCode.ServiceUnavailable;
 
     private static async Task WaitForSlotAsync(CancellationToken cancellationToken)
     {
