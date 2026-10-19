@@ -8,6 +8,22 @@
         "category": "Metadata",
         "versions": [
             {
+                "version": "1.7.2.0",
+                "changelog": "## v1.7.2.0\n### Fixes\n- When LRCLIB rate limits a request, the plugin now waits as long as LRCLIB asks before moving on to the next song. It also backs off on 503 errors now. Thanks to @tranxuanthang -> #61\n- Songs that got rate limited are no longer marked as \"no lyrics found\". Before, they were skipped for days.\n- The lyrics task stops early when LRCLIB keeps rate limiting it. The next run continues where it stopped. -> #60",
+                "targetAbi": "12.0.0.0",
+                "sourceUrl": "https://github.com/Felitendo/jellyfin-plugin-lyrics/releases/download/v1.7.2/lyrics_1.7.2.0_jf12.zip",
+                "checksum": "5f6be0fa87bdfc6b304e0c85179d8c63",
+                "timestamp": "2026-10-19T05:27:26Z"
+            },
+            {
+                "version": "1.7.2.0",
+                "changelog": "## v1.7.2.0\n### Fixes\n- When LRCLIB rate limits a request, the plugin now waits as long as LRCLIB asks before moving on to the next song. It also backs off on 503 errors now. Thanks to @tranxuanthang -> #61\n- Songs that got rate limited are no longer marked as \"no lyrics found\". Before, they were skipped for days.\n- The lyrics task stops early when LRCLIB keeps rate limiting it. The next run continues where it stopped. -> #60",
+                "targetAbi": "10.11.0.0",
+                "sourceUrl": "https://github.com/Felitendo/jellyfin-plugin-lyrics/releases/download/v1.7.2/lyrics_1.7.2.0_jf10.11.zip",
+                "checksum": "644c4155b01371dcadf80685eb3e3930",
+                "timestamp": "2026-10-19T05:27:26Z"
+            },
+            {
                 "version": "1.7.1.0",
                 "changelog": "## v1.7.1.0\n### New\n- Redesigned settings page.\n- New \"Remove plain lyrics that hide synced lyrics\" option, on by default. Turn it off if other apps use the lyrics files in your music folder.\n### Fixes\n- Synced lyrics now show up even when a plain .txt sits next to the song. Before, Jellyfin kept showing the plain lyrics and the task re-downloaded the synced ones every run. -> #59",
                 "targetAbi": "12.0.0.0",
