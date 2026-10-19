@@ -1,6 +1,6 @@
 name: "Lyrics"
 guid: "F4A1B2C3-D4E5-6F7A-8B9C-0D1E2F3A4B5C"
-version: "1.7.1"
+version: "1.7.2"
 targetAbi: "10.11.0.0"
 framework: "net9.0"
 owner: "Felitendo"
@@ -12,12 +12,8 @@ category: "Metadata"
 artifacts:
   - "Jellyfin.Plugin.Lyrics.dll"
 changelog: |-
-  ## v1.7.1.0
-  ### New
-  - Redesigned settings page.
-  - New "Remove plain lyrics that hide synced lyrics" option, on by default. Turn it off if other apps use the lyrics files in your music folder.
-
-  <img src="https://raw.githubusercontent.com/Felitendo/jellyfin-plugin-lyrics/master/res/settings.png" width="450" alt="Settings page">
-
+  ## v1.7.2.0
   ### Fixes
-  - Synced lyrics now show up even when a plain .txt sits next to the song. Before, Jellyfin kept showing the plain lyrics and the task re-downloaded the synced ones every run. -> #59
+  - When LRCLIB rate limits a request, the plugin now waits as long as LRCLIB asks before moving on to the next song. It also backs off on 503 errors now. Thanks to @tranxuanthang -> #61
+  - Songs that got rate limited are no longer marked as "no lyrics found". Before, they were skipped for days.
+  - The lyrics task stops early when LRCLIB keeps rate limiting it. The next run continues where it stopped. -> #60
