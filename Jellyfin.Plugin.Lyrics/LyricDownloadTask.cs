@@ -39,6 +39,9 @@ public class LyricDownloadTask : IScheduledTask
     private const int MinimumFailureStateTtlDays = 1;
     private const int PeriodicStateSaveMutationThreshold = 200;
 
+    // Each counted response already waited out Retry-After once, so this many in a row means LRCLIB keeps refusing.
+    private const int MaxConsecutiveThrottledResponses = 5;
+
     private static readonly int[] DefaultBackoffScheduleDays = [1, 3, 7, 30];
     private static readonly TimeSpan ErrorRetryDelay = TimeSpan.FromDays(1);
 
@@ -147,6 +150,9 @@ public class LyricDownloadTask : IScheduledTask
         var missingNoLyricsFoundCount = 0;
         var backoffSkippedCount = 0;
         var errorsCount = 0;
+        var rateLimitedCount = 0;
+        var rateLimitStopped = false;
+        int? rateLimitStreakStart = null;
 
         while (visitedItemCount < totalCount)
         {
@@ -174,6 +180,7 @@ public class LyricDownloadTask : IScheduledTask
                 cancellationToken.ThrowIfCancellationRequested();
 
                 var item = pageItems[pageIndex];
+                var itemIndex = currentIndex;
                 visitedItemCount++;
                 currentIndex = (currentIndex + 1) % totalCount;
 
@@ -217,6 +224,10 @@ public class LyricDownloadTask : IScheduledTask
                 var lyricFilesOnDisk = GetLyricFilesOnDisk(audioItem);
                 var lyricInFileFound = lyricFilesOnDisk.Count > 0;
 
+                // An empty result while LRCLIB was throttling says nothing about the track, so it gets no no-result
+                // backoff and is tried again on the next run.
+                var throttledBefore = LrclibRateLimiter.ThrottledResponseCount;
+
                 try
                 {
                     var existingLyrics = await _lyricManager.GetLyricsAsync(audioItem, cancellationToken).ConfigureAwait(false);
@@ -232,7 +243,7 @@ public class LyricDownloadTask : IScheduledTask
                             missingDownloadedCount++;
                             stateMutations += ClearRetryState(retryState, itemKey);
                         }
-                        else
+                        else if (LrclibRateLimiter.ThrottledResponseCount == throttledBefore)
                         {
                             missingNoLyricsFoundCount++;
                             if (configuration.EnableAdaptiveRetryBackoff)
@@ -279,7 +290,7 @@ public class LyricDownloadTask : IScheduledTask
                                 lyricFilesOnDisk = GetLyricFilesOnDisk(audioItem);
                                 syncedFileIndex = lyricFilesOnDisk.FindIndex(IsSyncedLyricFile);
                             }
-                            else
+                            else if (LrclibRateLimiter.ThrottledResponseCount == throttledBefore)
                             {
                                 plainNoSyncedFoundCount++;
                                 if (configuration.EnableAdaptiveRetryBackoff)
@@ -318,6 +329,23 @@ public class LyricDownloadTask : IScheduledTask
                     }
                 }
 
+                if (LrclibRateLimiter.ThrottledResponseCount != throttledBefore)
+                {
+                    rateLimitedCount++;
+                    rateLimitStreakStart ??= itemIndex;
+                    if (LrclibRateLimiter.ConsecutiveThrottledResponses >= MaxConsecutiveThrottledResponses)
+                    {
+                        // Rewind to the first track of the streak so the next run tries the rate-limited tracks again.
+                        currentIndex = rateLimitStreakStart.Value;
+                        rateLimitStopped = true;
+                        break;
+                    }
+                }
+                else if (LrclibRateLimiter.ConsecutiveThrottledResponses == 0)
+                {
+                    rateLimitStreakStart = null;
+                }
+
                 if (stateMutations >= PeriodicStateSaveMutationThreshold)
                 {
                     await _retryStateStore.SaveAsync(retryState, cancellationToken).ConfigureAwait(false);
@@ -325,7 +353,7 @@ public class LyricDownloadTask : IScheduledTask
                 }
             }
 
-            if (capReached)
+            if (capReached || rateLimitStopped)
             {
                 break;
             }
@@ -340,7 +368,7 @@ public class LyricDownloadTask : IScheduledTask
         }
 
         _logger.LogInformation(
-            "Lyrics task complete in {Elapsed}. Processed tracks: {ProcessedTrackCount}, visited items: {VisitedItemCount}/{TotalCount}, cap reached: {CapReached}, missing downloaded: {MissingDownloadedCount}, upgraded to synced: {UpgradedToSyncedCount}, already synced skipped: {AlreadySyncedSkippedCount}, db-desync skipped: {DbDesyncSkippedCount}, missing with no lyrics found: {MissingNoLyricsFoundCount}, plain with no synced found: {PlainNoSyncedFoundCount}, hidden plain lyrics removed: {HiddenPlainRemovedCount}, synced hidden by plain lyrics: {SyncedHiddenCount}, backoff skipped: {BackoffSkippedCount}, pruned retry-state entries: {PrunedEntriesCount}, errors: {ErrorsCount}",
+            "Lyrics task complete in {Elapsed}. Processed tracks: {ProcessedTrackCount}, visited items: {VisitedItemCount}/{TotalCount}, cap reached: {CapReached}, missing downloaded: {MissingDownloadedCount}, upgraded to synced: {UpgradedToSyncedCount}, already synced skipped: {AlreadySyncedSkippedCount}, db-desync skipped: {DbDesyncSkippedCount}, missing with no lyrics found: {MissingNoLyricsFoundCount}, plain with no synced found: {PlainNoSyncedFoundCount}, hidden plain lyrics removed: {HiddenPlainRemovedCount}, synced hidden by plain lyrics: {SyncedHiddenCount}, backoff skipped: {BackoffSkippedCount}, pruned retry-state entries: {PrunedEntriesCount}, errors: {ErrorsCount}, rate limited: {RateLimitedCount}",
             stopwatch.Elapsed,
             processedTrackCount,
             visitedItemCount,
@@ -356,7 +384,14 @@ public class LyricDownloadTask : IScheduledTask
             syncedHiddenCount,
             backoffSkippedCount,
             prunedEntriesCount,
-            errorsCount);
+            errorsCount,
+            rateLimitedCount);
+
+        if (rateLimitStopped)
+        {
+            _logger.LogWarning(
+                "Lyrics task stopped early because LRCLIB kept rate limiting requests. The next run continues where this one stopped.");
+        }
 
         if (syncedHiddenCount > 0 && !configuration.RemovePlainLyricsHidingSynced)
         {

@@ -39,6 +39,22 @@ internal static class LrclibRateLimiter
     // future and stall every request for the length of the jump.
     private static long _nextRequestTimestamp = Stopwatch.GetTimestamp();
 
+    private static long _throttledResponseCount;
+    private static int _consecutiveThrottledResponses;
+
+    /// <summary>
+    /// Gets the number of requests that were still throttled after their retry. Jellyfin's lyric
+    /// manager swallows provider errors, so the lyrics task compares two readings of this to tell
+    /// an empty result from a throttled one.
+    /// </summary>
+    public static long ThrottledResponseCount => Interlocked.Read(ref _throttledResponseCount);
+
+    /// <summary>
+    /// Gets the number of requests in a row that were still throttled after their retry. Any
+    /// other response resets it.
+    /// </summary>
+    public static int ConsecutiveThrottledResponses => Volatile.Read(ref _consecutiveThrottledResponses);
+
     /// <summary>
     /// Gets a value indicating whether the inter-request gap is skipped. Only honored against a
     /// self-hosted instance; requests to the public lrclib.net are always rate limited.
@@ -93,6 +109,7 @@ internal static class LrclibRateLimiter
 
             if (!IsThrottleResponse(response.StatusCode))
             {
+                Volatile.Write(ref _consecutiveThrottledResponses, 0);
                 return response;
             }
 
@@ -115,6 +132,8 @@ internal static class LrclibRateLimiter
 
             if (attempt >= MaxThrottleRetries)
             {
+                Interlocked.Increment(ref _throttledResponseCount);
+                Interlocked.Increment(ref _consecutiveThrottledResponses);
                 logger.LogWarning(
                     "LRCLIB returned {StatusCode} after {Attempts} attempt(s); next request in at least {Delay}.",
                     (int)response.StatusCode,
