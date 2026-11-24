@@ -1,30 +1,49 @@
 using System;
 using System.Diagnostics;
+using System.Globalization;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Net.Http.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using Jellyfin.Plugin.Lyrics.Models;
 using Microsoft.Extensions.Logging;
 
 namespace Jellyfin.Plugin.Lyrics;
 
 /// <summary>
-/// Process-wide rate-limit gate for lrclib.net requests. Enforces a minimum gap between outbound
-/// calls and honors <see cref="HttpStatusCode.TooManyRequests"/> and
+/// Process-wide rate-limit gate for lrclib.net requests. Spaces outbound calls to the configured
+/// requests per minute and honors <see cref="HttpStatusCode.TooManyRequests"/> and
 /// <see cref="HttpStatusCode.ServiceUnavailable"/> together with the Retry-After header so a
 /// transient spike doesn't get logged as a generic per-track error.
 /// </summary>
 internal static class LrclibRateLimiter
 {
+    /// <summary>
+    /// Default requests per minute. Leaves headroom below lrclib.net's limit for other clients
+    /// sharing the same IP.
+    /// </summary>
+    public const int DefaultRequestsPerMinute = 60;
+
+    /// <summary>
+    /// lrclib.net's documented per-IP limit for clients that send an identifying User-Agent.
+    /// </summary>
+    public const int OfficialMaxRequestsPerMinute = 90;
+
     private const int MaxThrottleRetries = 1;
     private const string OfficialHost = "lrclib.net";
     private const string OfficialHostSuffix = "." + OfficialHost;
 
-    private static readonly TimeSpan MinimumGap = TimeSpan.FromMilliseconds(200);
+    // lrclib.net asks clients to add a random jitter of up to 30% on top of Retry-After.
+    private const double MaxRetryAfterJitter = 0.3;
+    private const int MaxScopeLength = 32;
+
+    private static readonly TimeSpan MinimumRetryAfter = TimeSpan.FromMilliseconds(200);
     private static readonly TimeSpan MinimumDelay = TimeSpan.FromMilliseconds(1);
     private static readonly TimeSpan MaxRetryAfter = TimeSpan.FromMinutes(10);
     private static readonly TimeSpan FallbackRetryAfter = TimeSpan.FromSeconds(5);
+    private static readonly TimeSpan ScopeReadTimeout = TimeSpan.FromSeconds(5);
 
     private static readonly SemaphoreSlim _gate = new(1, 1);
 
@@ -56,6 +75,30 @@ internal static class LrclibRateLimiter
     public static int ConsecutiveThrottledResponses => Volatile.Read(ref _consecutiveThrottledResponses);
 
     /// <summary>
+    /// Gets the minimum time between the starts of two requests. Measured start to start, so it
+    /// caps the rate however long each response takes.
+    /// </summary>
+    private static TimeSpan RequestInterval
+    {
+        get
+        {
+            var configuration = LyricsPlugin.Instance?.Configuration;
+            var requestsPerMinute = configuration?.RequestsPerMinute ?? DefaultRequestsPerMinute;
+            if (requestsPerMinute < 1)
+            {
+                requestsPerMinute = DefaultRequestsPerMinute;
+            }
+
+            if (IsOfficialServer(configuration?.LrclibBaseUrl))
+            {
+                requestsPerMinute = Math.Min(requestsPerMinute, OfficialMaxRequestsPerMinute);
+            }
+
+            return TimeSpan.FromMinutes(1) / requestsPerMinute;
+        }
+    }
+
+    /// <summary>
     /// Gets a value indicating whether the inter-request gap is skipped. Only honored against a
     /// self-hosted instance; requests to the public lrclib.net are always rate limited.
     /// </summary>
@@ -73,8 +116,8 @@ internal static class LrclibRateLimiter
 
     /// <summary>
     /// Sends a request to lrclib.net, waiting if necessary to respect the inter-request gap and
-    /// any prior Retry-After backoff. On a 429 or 503 response, parses Retry-After, bumps the
-    /// watermark, and retries once before returning to the caller.
+    /// any prior Retry-After backoff. On a 429 or 503 response, parses Retry-After, adds jitter,
+    /// bumps the watermark, and retries once before returning to the caller.
     /// </summary>
     /// <param name="client">HTTP client to send the request on.</param>
     /// <param name="requestFactory">Factory that builds a fresh <see cref="HttpRequestMessage"/> per attempt; needed because messages can't be re-sent.</param>
@@ -114,6 +157,7 @@ internal static class LrclibRateLimiter
             }
 
             var retryAfter = ResolveRetryAfter(response.Headers.RetryAfter);
+            string status;
 
             // Apply the delay before the final return as well. Returning the last 429/503 without
             // moving the watermark lets the next track fire after only the normal gap, which
@@ -121,6 +165,9 @@ internal static class LrclibRateLimiter
             try
             {
                 await BumpWatermarkAsync(retryAfter, cancellationToken).ConfigureAwait(false);
+                status = DescribeThrottle(
+                    response.StatusCode,
+                    await ReadThrottleScopeAsync(response, cancellationToken).ConfigureAwait(false));
             }
             catch
             {
@@ -135,17 +182,17 @@ internal static class LrclibRateLimiter
                 Interlocked.Increment(ref _throttledResponseCount);
                 Interlocked.Increment(ref _consecutiveThrottledResponses);
                 logger.LogWarning(
-                    "LRCLIB returned {StatusCode} after {Attempts} attempt(s); next request in at least {Delay}.",
-                    (int)response.StatusCode,
+                    "LRCLIB returned {Status} after {Attempts} attempt(s); next request in at least {DelaySeconds:0.0} s.",
+                    status,
                     attempt + 1,
-                    retryAfter);
+                    retryAfter.TotalSeconds);
                 return response;
             }
 
             logger.LogWarning(
-                "LRCLIB returned {StatusCode}, backing off for {Delay} before retrying.",
-                (int)response.StatusCode,
-                retryAfter);
+                "LRCLIB returned {Status}, backing off for {DelaySeconds:0.0} s before retrying.",
+                status,
+                retryAfter.TotalSeconds);
             response.Dispose();
         }
     }
@@ -165,7 +212,7 @@ internal static class LrclibRateLimiter
                 await Task.Delay(remaining < MinimumDelay ? MinimumDelay : remaining, cancellationToken).ConfigureAwait(false);
             }
 
-            DelayNextRequest(MinimumGap);
+            DelayNextRequest(RequestInterval);
         }
         finally
         {
@@ -230,6 +277,39 @@ internal static class LrclibRateLimiter
         return version?.ToString() ?? "unknown";
     }
 
+    // Only a 429 body names the limit that was hit. Under heavy load the edge may answer with
+    // something that isn't JSON, so an unreadable body just leaves the scope out of the log.
+    private static async Task<string?> ReadThrottleScopeAsync(HttpResponseMessage response, CancellationToken cancellationToken)
+    {
+        if (response.StatusCode != HttpStatusCode.TooManyRequests)
+        {
+            return null;
+        }
+
+        using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        timeout.CancelAfter(ScopeReadTimeout);
+        try
+        {
+            var body = await response.Content
+                .ReadFromJsonAsync<LrclibErrorResponse>(timeout.Token)
+                .ConfigureAwait(false);
+            var scope = body?.Scope;
+
+            return scope is { Length: > 0 and <= MaxScopeLength } && !scope.AsSpan().ContainsAnyExceptInRange('a', 'z')
+                ? scope
+                : null;
+        }
+        catch (Exception) when (!cancellationToken.IsCancellationRequested)
+        {
+            return null;
+        }
+    }
+
+    private static string DescribeThrottle(HttpStatusCode statusCode, string? scope)
+        => scope is null
+            ? ((int)statusCode).ToString(CultureInfo.InvariantCulture)
+            : string.Create(CultureInfo.InvariantCulture, $"{(int)statusCode} (scope: {scope})");
+
     private static TimeSpan ResolveRetryAfter(RetryConditionHeaderValue? header)
     {
         TimeSpan? raw = null;
@@ -246,15 +326,15 @@ internal static class LrclibRateLimiter
         }
 
         var resolved = raw ?? FallbackRetryAfter;
-        if (resolved < MinimumGap)
+        if (resolved < MinimumRetryAfter)
         {
-            resolved = MinimumGap;
+            resolved = MinimumRetryAfter;
         }
         else if (resolved > MaxRetryAfter)
         {
             resolved = MaxRetryAfter;
         }
 
-        return resolved;
+        return resolved + (resolved * (Random.Shared.NextDouble() * MaxRetryAfterJitter));
     }
 }

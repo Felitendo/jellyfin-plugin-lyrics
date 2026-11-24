@@ -84,6 +84,12 @@ public class PluginConfiguration : BasePluginConfiguration
     public bool DisableRateLimit { get; set; }
 
     /// <summary>
+    /// Gets or sets the maximum number of LRCLIB requests per minute. Requests to the public
+    /// lrclib.net are capped at its documented per-IP limit regardless of this setting.
+    /// </summary>
+    public int RequestsPerMinute { get; set; } = LrclibRateLimiter.DefaultRequestsPerMinute;
+
+    /// <summary>
     /// Gets or sets the legacy state cursor value.
     /// </summary>
     public int StateCursor { get; set; }

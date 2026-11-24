@@ -85,6 +85,9 @@ All settings are on one page under **Dashboard -> Plugins -> My Plugins -> Lyric
   -> Turn on `Limit work per run` and reduce `Max songs to check each run`
   -> Keep `Retry after days` on `1,3,7,30` unless you want faster/slower retries
 
+- **`LRCLIB returned 429` in the log?**  
+  -> Lower `Requests per minute`. The plugin waits and retries on its own.
+
 - **Jellyfin shows plain lyrics although synced ones were downloaded?**  
   -> Turn on `Remove plain lyrics that hide synced lyrics` (default), or delete the plain `.txt` next to the song.
 

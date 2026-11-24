@@ -305,7 +305,7 @@
                             </div>
                             <div>
                                 <h2>LRCLIB server</h2>
-                                <p>Only for self-hosted LRCLIB instances.</p>
+                                <p>Request rate and self-hosted instances.</p>
                             </div>
                         </div>
 
@@ -322,6 +322,11 @@
                                 </label>
                                 <div class="fieldDescription checkboxFieldDescription">No delay between requests to your own server. lrclib.net always stays rate limited.</div>
                             </div>
+                        </div>
+                        <div class="inputContainer" id="requestsPerMinuteSettings">
+                            <label class="inputLabel inputLabelUnfocused" for="requestsPerMinute">Requests per minute</label>
+                            <input is="emby-input" type="number" id="requestsPerMinute" min="1" step="1" />
+                            <div class="fieldDescription">lrclib.net allows up to 90. Default: 60.</div>
                         </div>
                     </div>
 
@@ -343,6 +348,7 @@
                 ApiClient.getPluginConfiguration(LyricsPluginConfiguration.uniquePluginId).then(function (config) {
                     document.querySelector('#lrclibBaseUrl').value = config.LrclibBaseUrl || '';
                     document.querySelector('#disableRateLimit').checked = config.DisableRateLimit === true;
+                    document.querySelector('#requestsPerMinute').value = Math.max(parseInt(config.RequestsPerMinute, 10) || 60, 1);
                     document.querySelector('#useStrictSearch').checked = config.UseStrictSearch;
                     document.querySelector('#excludeArtistName').checked = config.ExcludeArtistName;
                     document.querySelector('#excludeAlbumName').checked = config.ExcludeAlbumName;
@@ -384,6 +390,12 @@
 
                     config.LrclibBaseUrl = (document.querySelector('#lrclibBaseUrl').value || '').trim();
                     config.DisableRateLimit = document.querySelector('#disableRateLimit').checked;
+                    var requestsPerMinuteValue = parseInt(document.querySelector('#requestsPerMinute').value || '60', 10);
+                    requestsPerMinuteValue = Number.isFinite(requestsPerMinuteValue) && requestsPerMinuteValue >= 1 ? requestsPerMinuteValue : 60;
+                    // Mirrors LrclibRateLimiter.RequestInterval: lrclib.net is capped at 90 per minute.
+                    config.RequestsPerMinute = LyricsPluginConfiguration.isOfficialServer(config.LrclibBaseUrl)
+                        ? Math.min(requestsPerMinuteValue, 90)
+                        : requestsPerMinuteValue;
                     config.UseStrictSearch = document.querySelector('#useStrictSearch').checked;
                     config.ExcludeArtistName = document.querySelector('#excludeArtistName').checked;
                     config.ExcludeAlbumName = document.querySelector('#excludeAlbumName').checked;
@@ -440,7 +452,9 @@
                 page.setVisible('durationFilterSettings', document.getElementById('enableDurationFilter').checked);
                 page.setVisible('adaptiveRetrySettings', document.getElementById('enableAdaptiveRetryBackoff').checked);
                 page.setVisible('runCapSettings', document.getElementById('enableRunCap').checked);
-                page.setVisible('rateLimitSettings', !page.isOfficialServer(document.getElementById('lrclibBaseUrl').value));
+                var selfHosted = !page.isOfficialServer(document.getElementById('lrclibBaseUrl').value);
+                page.setVisible('rateLimitSettings', selfHosted);
+                page.setVisible('requestsPerMinuteSettings', !selfHosted || !document.getElementById('disableRateLimit').checked);
             }
         };
 
@@ -453,7 +467,7 @@
             LyricsPluginConfiguration.saveConfiguration();
         });
 
-        ['useStrictSearch', 'enableDurationFilter', 'enableAdaptiveRetryBackoff', 'enableRunCap'].forEach(function (id) {
+        ['useStrictSearch', 'enableDurationFilter', 'enableAdaptiveRetryBackoff', 'enableRunCap', 'disableRateLimit'].forEach(function (id) {
             document.getElementById(id).addEventListener('change', LyricsPluginConfiguration.updateVisibility);
         });
 
