@@ -8,6 +8,22 @@
         "category": "Metadata",
         "versions": [
             {
+                "version": "1.7.3.0",
+                "changelog": "## v1.7.3.0\n### New\n- New \"Requests per minute\" setting under LRCLIB server. Default: 60. lrclib.net allows up to 90. -> #63\n- Rate limit warnings in the log now show if LRCLIB limited your IP or the app. -> #63\n\n### Fixes\n- Requests to LRCLIB are spaced out to stay under its rate limit. Before, the task kept running into 429 errors. -> #63\n- After a rate limit, the plugin waits a little extra, as LRCLIB asks.",
+                "targetAbi": "12.0.0.0",
+                "sourceUrl": "https://github.com/Felitendo/jellyfin-plugin-lyrics/releases/download/v1.7.3/lyrics_1.7.3.0_jf12.zip",
+                "checksum": "6b91e8f6980f08eaafc51ef5d3616a45",
+                "timestamp": "2026-11-24T22:43:53Z"
+            },
+            {
+                "version": "1.7.3.0",
+                "changelog": "## v1.7.3.0\n### New\n- New \"Requests per minute\" setting under LRCLIB server. Default: 60. lrclib.net allows up to 90. -> #63\n- Rate limit warnings in the log now show if LRCLIB limited your IP or the app. -> #63\n\n### Fixes\n- Requests to LRCLIB are spaced out to stay under its rate limit. Before, the task kept running into 429 errors. -> #63\n- After a rate limit, the plugin waits a little extra, as LRCLIB asks.",
+                "targetAbi": "10.11.0.0",
+                "sourceUrl": "https://github.com/Felitendo/jellyfin-plugin-lyrics/releases/download/v1.7.3/lyrics_1.7.3.0_jf10.11.zip",
+                "checksum": "8e180835901e8c01a2c58ce128cf4bac",
+                "timestamp": "2026-11-24T22:43:53Z"
+            },
+            {
                 "version": "1.7.2.0",
                 "changelog": "## v1.7.2.0\n### Fixes\n- When LRCLIB rate limits a request, the plugin now waits as long as LRCLIB asks before moving on to the next song. It also backs off on 503 errors now. Thanks to @tranxuanthang -> #61\n- Songs that got rate limited are no longer marked as \"no lyrics found\". Before, they were skipped for days.\n- The lyrics task stops early when LRCLIB keeps rate limiting it. The next run continues where it stopped. -> #60",
                 "targetAbi": "12.0.0.0",
