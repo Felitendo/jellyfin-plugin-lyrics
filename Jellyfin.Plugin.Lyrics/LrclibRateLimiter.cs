@@ -157,6 +157,7 @@ internal static class LrclibRateLimiter
             }
 
             var retryAfter = ResolveRetryAfter(response.Headers.RetryAfter);
+            TimeSpan wait;
             string status;
 
             // Apply the delay before the final return as well. Returning the last 429/503 without
@@ -164,7 +165,7 @@ internal static class LrclibRateLimiter
             // ignores the server's Retry-After instruction entirely.
             try
             {
-                await BumpWatermarkAsync(retryAfter, cancellationToken).ConfigureAwait(false);
+                wait = await BumpWatermarkAsync(retryAfter, cancellationToken).ConfigureAwait(false);
                 status = DescribeThrottle(
                     response.StatusCode,
                     await ReadThrottleScopeAsync(response, cancellationToken).ConfigureAwait(false));
@@ -185,14 +186,14 @@ internal static class LrclibRateLimiter
                     "LRCLIB returned {Status} after {Attempts} attempt(s); next request in at least {DelaySeconds:0.0} s.",
                     status,
                     attempt + 1,
-                    retryAfter.TotalSeconds);
+                    wait.TotalSeconds);
                 return response;
             }
 
             logger.LogWarning(
                 "LRCLIB returned {Status}, backing off for {DelaySeconds:0.0} s before retrying.",
                 status,
-                retryAfter.TotalSeconds);
+                wait.TotalSeconds);
             response.Dispose();
         }
     }
@@ -220,12 +221,16 @@ internal static class LrclibRateLimiter
         }
     }
 
-    private static async Task BumpWatermarkAsync(TimeSpan delay, CancellationToken cancellationToken)
+    // Returns the actual wait until the next request: the Retry-After delay or what is left of
+    // the regular gap, whichever is longer. Logging only the Retry-After value understates the
+    // wait whenever the configured gap is longer than the server's Retry-After.
+    private static async Task<TimeSpan> BumpWatermarkAsync(TimeSpan delay, CancellationToken cancellationToken)
     {
         await _gate.WaitAsync(cancellationToken).ConfigureAwait(false);
         try
         {
             DelayNextRequest(delay);
+            return GetRemainingGap();
         }
         finally
         {
