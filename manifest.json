@@ -8,6 +8,22 @@
         "category": "Metadata",
         "versions": [
             {
+                "version": "1.7.4.0",
+                "changelog": "## v1.7.4.0\n### Fixes\n- Rate limit warnings in the log now show the real wait until the next request. Before, they only showed LRCLIB's Retry-After. -> #64",
+                "targetAbi": "12.0.0.0",
+                "sourceUrl": "https://github.com/Felitendo/jellyfin-plugin-lyrics/releases/download/v1.7.4/lyrics_1.7.4.0_jf12.zip",
+                "checksum": "5842ff9d5e180f4a447483e500b4970a",
+                "timestamp": "2026-11-26T07:45:09Z"
+            },
+            {
+                "version": "1.7.4.0",
+                "changelog": "## v1.7.4.0\n### Fixes\n- Rate limit warnings in the log now show the real wait until the next request. Before, they only showed LRCLIB's Retry-After. -> #64",
+                "targetAbi": "10.11.0.0",
+                "sourceUrl": "https://github.com/Felitendo/jellyfin-plugin-lyrics/releases/download/v1.7.4/lyrics_1.7.4.0_jf10.11.zip",
+                "checksum": "bd5179acb92b5c20febb469a215251a2",
+                "timestamp": "2026-11-26T07:45:09Z"
+            },
+            {
                 "version": "1.7.3.0",
                 "changelog": "## v1.7.3.0\n### New\n- New \"Requests per minute\" setting under LRCLIB server. Default: 60. lrclib.net allows up to 90. -> #63\n- Rate limit warnings in the log now show if LRCLIB limited your IP or the app. -> #63\n\n### Fixes\n- Requests to LRCLIB are spaced out to stay under its rate limit. Before, the task kept running into 429 errors. -> #63\n- After a rate limit, the plugin waits a little extra, as LRCLIB asks.",
                 "targetAbi": "12.0.0.0",
