@@ -1,6 +1,6 @@
 name: "Lyrics"
 guid: "F4A1B2C3-D4E5-6F7A-8B9C-0D1E2F3A4B5C"
-version: "1.7.3"
+version: "1.7.4"
 targetAbi: "10.11.0.0"
 framework: "net9.0"
 owner: "Felitendo"
@@ -12,11 +12,6 @@ category: "Metadata"
 artifacts:
   - "Jellyfin.Plugin.Lyrics.dll"
 changelog: |-
-  ## v1.7.3.0
-  ### New
-  - New "Requests per minute" setting under LRCLIB server. Default: 60. lrclib.net allows up to 90. -> #63
-  - Rate limit warnings in the log now show if LRCLIB limited your IP or the app. -> #63
-
+  ## v1.7.4.0
   ### Fixes
-  - Requests to LRCLIB are spaced out to stay under its rate limit. Before, the task kept running into 429 errors. -> #63
-  - After a rate limit, the plugin waits a little extra, as LRCLIB asks.
+  - Rate limit warnings in the log now show the real wait until the next request. Before, they only showed LRCLIB's Retry-After. -> #64
